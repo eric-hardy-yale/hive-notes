@@ -1,0 +1,88 @@
+{
+  "date": "23 Nov 2026",
+  "source": "Camera video (5 clips) and a phone screen recording, 2:01–2:38 PM; transcribed on the laptop. No names or location kept.",
+  "weather": "70°F, clear, wind 9 mph. The app said: good to open, best around 3 PM.",
+  "setting": "One working beekeeper, one 2-deep hive in a shared bee yard, live app v0.6 on an iPhone in dark mode. The keeper worked in leather gloves; Eric held the phone for part of it.",
+  "what_ran": [
+    "Added a new apiary on the phone (location from where they stood).",
+    "Started a visit on Hive 1, photographed 2 frames from the box they opened, and had the Frame Reader read each photo.",
+    "Checked the AI's suggestions frame by frame, then the closing taps (space, temperament, smell, pests).",
+    "Tried voice notes at the hive.",
+    "78-second interview afterwards."
+  ],
+  "minutes_hive_open": 7,
+  "frame": {
+    "photos_read": 2,
+    "right": 4,
+    "wrong": 1,
+    "missed": 2,
+    "detail": [
+      "Frame 1: AI said capped brood, empty comb, spotty. Keeper: honey and nectar, not a lot, empty comb, no brood. Right: empty comb. Wrong: capped brood. Missed: honey, nectar.",
+      "Frame 2: AI said capped brood, solid pattern, no queen cells. Keeper accepted all three.",
+      "One read, as the phone showed it: gpt-6-luna, 2,175 tokens in, 482 out, $0.00046."
+    ],
+    "one_read_cost": "gpt-6-luna, 2,175 tokens in, 482 out, $0.00046 (shown on the phone)"
+  },
+  "taps_confirmed": "4 of 4 (room to grow, calm, normal smell, no pests)",
+  "frames_saved": "0 of 2 — the › and Done buttons dropped them (fixed the same day)",
+  "voice_notes": "0 captured — “Listening…” never showed words and the keeper couldn't stop it (fixed the same day)",
+  "not_run": [
+    "Timing against the keeper's usual method (paper or memory): they had about 30 minutes and the bees were getting defensive.",
+    "Talk through the apiary, Plan with AI and Ask: not reached for the same reason.",
+    "Trust score (1–5): not asked."
+  ],
+  "quotes": [
+    "I think the app is useful. I do like the fact that you can take the information in real time.",
+    "I do like the fact that it tells you the health of your hive, so it lets you know whether there's honey, if there's brood, or if it's capped honey.",
+    "As beekeepers, we have to write, and that process is kind of difficult to handle the bees while taking the notes … it kind of makes an unsafe process be a little bit more safe.",
+    "Making sure that it's not describing honey as brood, or a queen cell as just a cell that is just kind of misshapen."
+  ],
+  "issues": [
+    {
+      "what": "Both photographed frames (photos + AI taps) were lost: › and “Done with frames” didn't save the frame on screen.",
+      "said": "Recorded this visit · 0 of 20 frames (on screen)",
+      "fix": "Anything tapped or photographed is now kept whenever you leave a frame."
+    },
+    {
+      "what": "Voice notes: “Listening…” stayed on with no words, and there was no obvious way to stop it in gloves.",
+      "said": "I don't know how to stop the notes.",
+      "fix": "Words appear as heard; it stops by itself after 6 s of quiet; a big red Stop button; if nothing is heard it says so and opens the keyboard mic."
+    },
+    {
+      "what": "The Frame Reader called capped honey “capped brood”.",
+      "said": "The only thing that it said wrong was that there is brood.",
+      "fix": "The prompt now spells out white flat honey cappings vs tan domed brood cappings, says to leave brood out and mark low confidence when unsure, and only to report peanut-shaped queen cells."
+    },
+    {
+      "what": "The visit asked for a frame photo before the hive was open, started at “Box 2”, and expected all 20 frames.",
+      "said": "Why do I need to take a picture of this? This is not the hive. … So now this is box two frame. What does that mean?",
+      "fix": "Boxes are called Top box / Bottom box; a first line says open the hive first, record only the frames you pull, one box is fine; the count no longer says “of 20”."
+    },
+    {
+      "what": "Opening the app while the free server was asleep showed the host's “waking up” page for about 20 s, then an unfinished test visit from earlier.",
+      "said": "",
+      "fix": "The phone's saved copy ignores the host's waiting page; an unfinished visit older than 3 hours waits on the home screen with Resume / Discard instead of opening."
+    },
+    {
+      "what": "No clear sign the location button worked; the name being required wasn't obvious.",
+      "said": "I'm standing at the location, why isn't it getting here … Do I need to put a name?",
+      "fix": "A green “✓ Location set” line and button; the name is marked required and focused if missing."
+    },
+    {
+      "what": "Holding the phone while handling frames.",
+      "said": "You need both your hands to do this. … I can't keep it in my hand.",
+      "fix": "Not fixed in code: this is the case for talking instead of tapping, and for a helper or a phone mount."
+    }
+  ],
+  "not_fixed": [
+    "Photos of both sides of a frame (the keeper asked “does it do both sides?”)",
+    "A second field test to check the fixes and the Frame Reader on more frames"
+  ],
+  "reread": {
+    "how": "Same evening, stills of the same two frames taken from the video (the phone's own photos stay on the phone), read once with the old prompt and with the new prompt.",
+    "frame_1": "Old and new prompt: honey, no brood. The field miss was at least partly the phone photo, not only the prompt.",
+    "frame_2": "Old prompt: capped brood + honey, spotty (low confidence). New prompt, 2 runs: no longer claims brood; says it can't tell honey from brood under the bees (low confidence), and under-reports the honey.",
+    "cost": "$0.0003–0.0005 per read",
+    "takeaway": "The new prompt stops the false “brood” call but trades it for “not sure”. It needs a proper test on many labelled frame photos, not two."
+  }
+}

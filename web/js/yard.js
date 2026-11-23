@@ -193,7 +193,7 @@ screen("yard", {
       ${yardAlerts(y.id).map(a => `<div class="note ${a.icon === "⚠️" ? "warn" : ""}">${a.icon} ${esc(a.text)}</div>`).join("")}
       <div class="between" style="margin:2px 0 4px"><span class="small grow">🌼 ${esc(flowFor(m).text)}${y.forage ? ` · ${esc(y.forage)}` : ""}</span><button class="btn sm ghost" data-nav="yardrun" style="margin:0;flex:0 0 auto">🧺 Packing list</button></div>
       ${aiOn() && cs.length ? `<button class="btn ghost twoline" id="yardTalk" style="margin-top:10px">🎙 Talk through the apiary<span class="btnsub">Say what you saw. The AI fills in each colony's record.</span></button>` : ""}
-      <div class="between"><h2>Colonies</h2>${cs.length ? `<button class="btn sm ghost" id="addBtn" style="margin:0;flex:0 0 auto">+ Add a hive or nuc</button>` : ""}</div>
+      <div class="between" style="align-items:center;margin:20px 0 10px"><h2 style="margin:0">Colonies</h2>${cs.length ? `<button class="btn sm ghost" id="addBtn" style="margin:0;flex:0 0 auto">+ Add a hive or nuc</button>` : ""}</div>
       ${cs.map(colonyCard).join("") || `<div class="small">No colonies here yet.</div><button class="btn" id="addBtn">+ Add a hive or nuc</button>`}
       ${ended ? `<button class="link" data-nav="past" style="margin-top:10px">Past colonies (${ended}) — dead-outs, sold, combined ›</button>` : ""}
       <div style="height:60px"></div>`;

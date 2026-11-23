@@ -156,7 +156,7 @@ function colonyCard(c) {
     <div class="grow">
       <div class="row"><b>${esc(c.name)}</b><span class="small">· ${esc(describeSetup(c))}</span></div>
       <div style="margin-top:5px">${ns.slice(0, 3).map(n => pill(n.level, n.short)).join("") || pill("grey", lv ? "Nothing urgent" : "New · no visits yet")}</div>
-      <div class="small" style="margin-top:5px">${lv ? `Last visit ${daysBetween(lv.date, TODAY)} days ago` : "Its first visit starts its history"}</div>
+      <div class="small" style="margin-top:5px">${lv ? (() => { const n = daysBetween(lv.date, TODAY); return n === 0 ? "Visited today" : n === 1 ? "Last visit yesterday" : `Last visit ${n} days ago`; })() : "Its first visit starts its history"}</div>
     </div><span class="chev">›</span></div>`;
 }
 

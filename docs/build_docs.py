@@ -194,7 +194,7 @@ The model is so cheap that hosting, not tokens, is most of the cost.</p>
 <tr><td>Full (with cached reference)</td><td class=n>{sf['input']:,.0f}</td><td class=n>{money(sf['cost'], 5)}</td><td class=n>{acc_f:.0%}</td><td class=n>{inv_f}</td></tr>
 <tr><td>Lean (no reference)</td><td class=n>{sl['input']:,.0f}</td><td class=n>{money(sl['cost'], 5)}</td><td class=n>{acc_l:.0%}</td><td class=n>{inv_l}</td></tr></table>
 <p>{lean_verdict(sf, sl, acc_f, acc_l)}</p>
-<p class=muted>Run-to-run variation is real. In an earlier full run (before two prompt fixes), the full prompt scored 36 of 37 and the lean prompt 35 of 37. Twelve notes is a small test, and the field test adds real ones.</p>"""
+<p class=muted>Run-to-run variation is real. In an earlier full run (before two prompt fixes), the full prompt scored 36 of 37 and the lean prompt 35 of 37. Twelve notes is a small test. The field test did not reach the Scribe (see section 6), so these notes are still the only Scribe test.</p>"""
 
 
 def lean_verdict(sf, sl, acc_f, acc_l) -> str:
@@ -222,6 +222,7 @@ def section_trace() -> str:
     tools = ", ".join(a["tools"]) or "none"
     adv = a["advice"]
     return f"""
+<p class=muted>The phone screenshots of AI runs in this section were taken on 22 Nov (v0.5), before the honey theme and the “yard” → “apiary” wording; the agents are the same except the Frame Reader prompt, which was tightened after the field test.</p>
 <p>Here is one real run from the test set, end to end. The keeper talks through the apiary; the Scribe turns it into records; the keeper saves; then the Advisor plans for the colony that needs it.</p>
 <h3>Step 1 — Scribe (note {e(s['id'])}: three colonies in one breath)</h3>
 <p>{s['rounds']} model round(s). Tools called: {e(', '.join(s['tools']) or 'none (the colony list was in the message)')}.
@@ -280,23 +281,28 @@ def section_safety() -> str:
 def section_impact() -> str:
     if FIELD:
         f = FIELD
-        saved = (f["baseline_min"] - f["app_min"]) if f.get("baseline_min") and f.get("app_min") else None
-        quotes = "".join(f'<div class="quote">“{e(q)}” — the beekeeper</div>' for q in f.get("quotes", []))
         fr = f.get("frame", {})
-        tk = f.get("talk", {})
+        quotes = "".join(f'<div class="quote">“{e(q)}” — the beekeeper</div>' for q in f.get("quotes", []))
+        issues = "".join(f'<tr><td>{e(i["what"])}{(" <i>“" + e(i["said"]) + "”</i>") if i.get("said") and not i["said"].startswith("Recorded") else ""}</td><td>{e(i["fix"])}</td></tr>' for i in f.get("issues", []))
         ff = f"""
-<h3>Field test: a working beekeeper, live hives ({e(f.get('date', ''))})</h3>
+<h3>Field test: a working beekeeper, a live hive ({e(f.get('date', ''))})</h3>
+<p>{e(f.get('setting', ''))} Weather: {e(f.get('weather', ''))}</p>
+<p><b>What ran:</b> {e(' '.join(f.get('what_ran', [])))}</p>
 <table>
-<tr><td>Colonies / visits</td><td>{e(str(f.get('colonies', '')))}</td></tr>
-<tr><td>Recording one hive the usual way ({e(f.get('baseline_method', ''))})</td><td>{f.get('baseline_min', '?')} min</td></tr>
-<tr><td>Recording one hive with Hive notes</td><td>{f.get('app_min', '?')} min{f' (<b>{saved:+.0f} min</b>)' if saved is not None else ''}</td></tr>
-<tr><td>Frame Reader suggestions right / wrong / missed</td><td>{fr.get('right', '?')} / {fr.get('wrong', '?')} / {fr.get('missed', '?')}</td></tr>
-<tr><td>Talk-through items right / wrong</td><td>{tk.get('right', '?')} / {tk.get('wrong', '?')}</td></tr>
-<tr><td>Advisor plan: would they do it?</td><td>{e(str(f.get('plan_verdict', '?')))}</td></tr>
-<tr><td>Trust it next time (1–5)</td><td>{e(str(f.get('trust', '?')))}</td></tr>
-</table>{quotes}
-{('<p><b>What broke or confused them:</b> ' + e('; '.join(f.get('issues', []))) + '</p>') if f.get('issues') else ''}
-<div class="row">{img('20_field_1', 'At the hive.')}{img('21_field_2', 'The keeper using the app.')}</div>"""
+<tr><td>Hive open, using the app</td><td>about {f.get('minutes_hive_open', '?')} min</td></tr>
+<tr><td>Frame Reader on {fr.get('photos_read', '?')} frame photos: suggestions right / wrong / missed, checked by the keeper</td><td>{fr.get('right', '?')} / {fr.get('wrong', '?')} / {fr.get('missed', '?')}</td></tr>
+{''.join(f'<tr><td colspan=2 class=muted>{e(d)}</td></tr>' for d in fr.get('detail', []))}
+{(f"<tr><td>Re-read the same evening with the new prompt</td><td>{e(f['reread']['frame_1'])} {e(f['reread']['frame_2'])} <i>{e(f['reread']['takeaway'])}</i> <span class=muted>({e(f['reread']['how'])} {e(f['reread']['cost'])}.)</span></td></tr>") if f.get('reread') else ''}
+<tr><td>Closing taps the keeper confirmed</td><td>{e(f.get('taps_confirmed', '?'))}</td></tr>
+<tr><td>Frames saved to the record</td><td>{e(f.get('frames_saved', '?'))}</td></tr>
+<tr><td>Voice notes captured</td><td>{e(f.get('voice_notes', '?'))}</td></tr>
+</table>
+<p><b>Not run:</b> {e(' '.join(f.get('not_run', [])))} So this test shows the app working on a real hive and where it breaks; it does not measure time saved.</p>
+{quotes}
+<p><b>What broke or confused them, and what changed the same evening (v0.7):</b></p>
+<table><tr><th>Found in the field</th><th>Fix</th></tr>{issues}</table>
+<p class=muted>Still open: {e('; '.join(f.get('not_fixed', [])))}.</p>
+<div class="row">{img('20_field_1', 'Frame 1 at the hive: the Frame Reader suggested capped brood, empty comb, spotty. The keeper: it is honey and nectar, not brood.')}{img('21_field_2', 'Photographing a frame at the hive.')}</div>"""
     else:
         ff = pending("Field test results (timing vs. the keeper's usual method, Frame Reader and Scribe accuracy checked by the keeper, their verdict on the plan, quotes) fill in from field_test/results.json after the morning test.")
     return f"""
@@ -367,12 +373,14 @@ The code takes either key: <code>PORTKEY_API_KEY</code> (the course key, through
 <ul>
 <li><b>One keeper, one region.</b> The rules of thumb (stores targets, thresholds, season calendar) are Northeast US defaults with rough regional shifts. They need checking against more keepers and extension guidance.</li>
 <li><b>The Frame Reader is a general model, not a trained bee model.</b> It suggests and the keeper confirms. A real version would fine-tune or license a detector trained on labelled frame photos.</li>
+<li><b>One field test, cut short.</b> One keeper, one hive, about 7 minutes with the hive open. It found two bugs that lost data and showed the Frame Reader confusing honey with brood. It did not measure time saved, the Scribe, or the Advisor in the field. The fixes (v0.7) have not been tested at a hive yet.</li>
+<li><b>Hands are the real constraint.</b> The keeper said “you need both your hands to do this”, and the phone was held by a helper. Voice-first logging (talk once, after closing the hive) fits the job better than tapping frame by frame.</li>
 <li><b>Records live on one phone.</b> Backup is a file. There is no sync between devices or with a helper.</li>
 <li><b>No push notifications.</b> Alerts show when the app is opened.</li>
 <li><b>Free hosting sleeps.</b> The first AI call after a quiet spell can take about a minute.</li>
 <li><b>Predictions are only checked over time.</b> The app scores its own stores, mite and queen predictions as new readings come in. A season of use is needed to know how often it's right.</li>
 </ul>
-<p><b>With another month:</b> test it with 5–10 keepers through a club, including newer keepers; measure colonies fed before the freeze and mite counts taken on time; add encrypted sync so a mentor can see a newer keeper's records; add push reminders; and build a labelled frame-photo set from field use to test or train the Frame Reader.</p>
+<p><b>With another month:</b> test it with 5–10 keepers through a club, including newer keepers; measure colonies fed before the freeze and mite counts taken on time; add encrypted sync so a mentor can see a newer keeper's records; add push reminders; build a labelled frame-photo set from field use to test or train the Frame Reader; and add a photo of each side of a frame (the keeper asked “does it do both sides?”).</p>
 <p class=muted>Sources: Auburn University / Oregon State / Apiary Inspectors of America, U.S. Beekeeping Survey 2024–25 and 2025–26 (apiaryinspectors.org); Agricultural Marketing Resource Center, Bees Profile (agmrc.org); National Honey Board, Honey Industry Facts; 2026 package-bee retailer listings (Dadant, Lappe's Bee Supply, others); competitor store pages and websites as listed in section 2; Open-Meteo for weather.</p>
 </main></body></html>"""
 
@@ -386,7 +394,7 @@ def slides() -> str:
     cost_line = (f"Scribe note: {money(sf['cost'], 5)} · Advisor plan: {money(adv['cost'], 5)}<br>≈ {money(4 * sf['cost'] + 16 * adv['cost'], 3)} per user per month (model)") if live else "PENDING: real token counts"
     guards = f"{sum(r['stopped_it'] for r in GUARDS['results'])}/{len(GUARDS['results'])} server guards held" if GUARDS else ""
     attacks = (f"{sum(a['blocked'] for a in live['attacks'])}/{len(live['attacks'])} live attacks blocked") if live and live.get("attacks") else "live attacks: PENDING"
-    field = (f"Field test: {FIELD.get('baseline_min', '?')} → {FIELD.get('app_min', '?')} min per hive · " + (f"“{e(FIELD['quotes'][0])}”" if FIELD.get("quotes") else "")) if FIELD else "Field test with a working beekeeper: PENDING (morning of Nov 23)"
+    field = (f"Field test on a live hive: “{e(FIELD['quotes'][0])}”<br><span style='font-size:.7em'>Frame Reader {FIELD['frame']['right']} right / {FIELD['frame']['wrong']} wrong / {FIELD['frame']['missed']} missed · it called honey “brood” · 2 bugs found and fixed the same day</span>") if FIELD else "Field test with a working beekeeper: PENDING (morning of Nov 23)"
     body = "".join([
         s(f"<h1>🐝 Hive notes</h1><h3>What to expect and what to do next, from what you see at the hive and the weather</h3><p>{AUTHOR} · MGT 409 · Nov 2026</p>"),
         s("<h2>The problem</h2><ul><li>US keepers lost <b>55.6%</b> of colonies in 2024–25, the worst on record</li><li>Most are hobbyists with fewer than 25 hives, learning as they go</li><li>Losses come down to timing: feed before the freeze, count mites, catch a queenless nuc</li></ul><p class=q>“help newer people … figure out what the next step they should do in the hive” — a working beekeeper</p>"),
@@ -395,6 +403,10 @@ def slides() -> str:
         s(f"<h2>Demo</h2><div class=r>{img('02_yard', 'Apiary + live forecast', '230px')}{img('08_scribe_result', 'Scribe: words → records', '230px')}{img('09_advisor_plan', 'Advisor: checked plan', '230px')}</div>"),
         s(f"<h2>Cost to run</h2><p>gpt-6-luna · cached prompts · rules first, AI on tap</p><p class=big>{cost_line}</p><p>Hosting, not tokens, is most of the cost at 10,000 users</p>"),
         s(f"<h2>Safety</h2><ul><li>Every Scribe field must quote the keeper</li><li>Advisor numbers must come from the records or tools; no doses; risks can't be dropped</li><li>Injection flagged and ignored; no tools that change anything</li><li>Daily $ cap, rate limit, access code, tool-round limit</li></ul><p class=big>{guards} · {attacks}</p>"),
+        (s(f"""<h2>Field test · live hive, 23 Nov</h2><div class=r style="align-items:center"><div style="flex:1.1;min-width:0">{img('20_field_1', 'The AI read honey as “capped brood”; the keeper caught it', '420px')}</div>
+<div style="flex:1;min-width:0;font-size:.62em;padding-right:10px"><ul><li>Frame Reader: <b>{FIELD['frame']['right']} right / {FIELD['frame']['wrong']} wrong / {FIELD['frame']['missed']} missed</b> on 2 frames; ~$0.0005 a read</li>
+<li>Closing taps confirmed: 4 of 4</li><li><b>Bugs:</b> both frames lost on ›/Done; voice notes never heard a word → fixed that evening (v0.7)</li>
+<li>“You need both your hands to do this” → talk once, after closing up</li></ul><p class=q>“{e(FIELD['quotes'][2])}”</p></div></div>""") if FIELD else ""),
         s(f"<h2>Impact</h2><p class=big>{field}</p><p>Save one colony every two winters ≈ $90/yr per keeper vs. well under $1/yr of AI</p>"),
         s("<h2>What's next</h2><ul><li>5–10 keepers through a club, a full season</li><li>Encrypted sync so mentors can see a newer keeper's records</li><li>Push reminders before freezes and strip-removal dates</li><li>A labelled frame-photo set to test or train the Frame Reader</li></ul>"),
         s(f"<h2>Try it</h2><p>{REPO}</p><p>{LIVE_AI}</p><p class=muted>python server.py → localhost:8040</p>"),
@@ -404,7 +416,7 @@ def slides() -> str:
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
 <style>.reveal{{font-family:-apple-system,Segoe UI,sans-serif;color:#1f1a14}} .reveal h1,.reveal h2,.reveal h3{{font-family:inherit;color:#1f1a14;text-transform:none}}
 .reveal h2{{border-bottom:4px solid #c97d0c;display:inline-block;padding-bottom:4px}} .reveal .slides{{text-align:left}} .reveal ul{{display:block}}
-.reveal section{{background:#efe9df;border-radius:18px;padding:28px 40px}} .reveal .big{{font-size:1.15em;font-weight:700;color:#c97d0c}}
+.reveal section{{background:#efe9df;border-radius:18px;padding:28px 40px;box-sizing:border-box}} .reveal .big{{font-size:1.15em;font-weight:700;color:#c97d0c}}
 .reveal .q{{font-style:italic;border-left:5px solid #c97d0c;padding-left:14px;font-size:.8em}} .reveal .r{{display:flex;gap:16px;justify-content:center}}
 .reveal figure{{margin:0;text-align:center}} .reveal figure img{{max-height:440px;border-radius:16px;border:1px solid #e2d7c4}} .reveal figcaption{{font-size:.45em;color:#6f6556}}
 .reveal .diagram{{width:100%;max-height:480px}} .reveal .muted{{color:#6f6556;font-size:.6em}} .pending{{background:#fff4cc;border:2px dashed #d9a400;padding:6px 10px;font-size:.5em;border-radius:8px}}</style>
