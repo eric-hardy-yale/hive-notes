@@ -387,44 +387,123 @@ The code takes either key: <code>PORTKEY_API_KEY</code> (the course key, through
 
 
 def slides() -> str:
-    def s(body: str) -> str:
-        return f"<section>{body}</section>"
+    def s(body: str, cls: str = "") -> str:
+        return f'<section class="{cls}">{body}</section>'
+
+    def shot(name: str, cap: str, h: int = 470) -> str:
+        p = next((SHOTS / (name + x) for x in (".jpg", ".png") if (SHOTS / (name + x)).is_file()), None)
+        if not p:
+            return pending(f"screenshot {name}")
+        mime = "image/png" if p.suffix == ".png" else "image/jpeg"
+        return f'<figure><img src="data:{mime};base64,{base64.b64encode(p.read_bytes()).decode()}" style="max-height:{h}px"><figcaption>{cap}</figcaption></figure>'
+
     live = LIVE
     sf = avg_usage(live["scribe_full"]["rows"]) if live else None
     adv = avg_usage(live["advisor"]) if live else None
-    cost_line = (f"Scribe note: {money(sf['cost'], 5)} · Advisor plan: {money(adv['cost'], 5)}<br>≈ {money(4 * sf['cost'] + 16 * adv['cost'], 3)} per user per month (model)") if live else "PENDING: real token counts"
-    guards = f"{sum(r['stopped_it'] for r in GUARDS['results'])}/{len(GUARDS['results'])} server guards held" if GUARDS else ""
-    attacks = (f"{sum(a['blocked'] for a in live['attacks'])}/{len(live['attacks'])} live attacks blocked") if live and live.get("attacks") else "live attacks: PENDING"
-    field = (f"Field test on a live hive: “{e(FIELD['quotes'][0])}”<br><span style='font-size:.7em'>Frame Reader {FIELD['frame']['right']} right / {FIELD['frame']['wrong']} wrong / {FIELD['frame']['missed']} missed · it called honey “brood” · 2 bugs found and fixed the same day</span>") if FIELD else "Field test with a working beekeeper: PENDING (morning of Nov 23)"
-    body = "".join([
-        s(f"<h1>🐝 Hive notes</h1><h3>What to expect and what to do next, from what you see at the hive and the weather</h3><p>{AUTHOR} · MGT 409 · Nov 2026</p>"),
-        s("<h2>The problem</h2><ul><li>US keepers lost <b>55.6%</b> of colonies in 2024–25, the worst on record</li><li>Most are hobbyists with fewer than 25 hives, learning as they go</li><li>Losses come down to timing: feed before the freeze, count mites, catch a queenless nuc</li></ul><p class=q>“help newer people … figure out what the next step they should do in the hive” — a working beekeeper</p>"),
-        s("<h2>What's new</h2><ul><li>Note apps log. Camera apps read one photo. Sensor apps need hardware.</li><li><b>Hive notes:</b> your observations + <b>live forecast</b> + the colony's trend → a dated next step</li><li>Talk once for the whole apiary; AI answers <b>checked</b> before you see them</li><li>No hive hardware; records stay on your phone</li></ul>"),
-        s(f"<h2>How the agents work</h2>{DIAGRAM}"),
-        s(f"<h2>Demo</h2><div class=r>{img('02_yard', 'Apiary + live forecast', '230px')}{img('08_scribe_result', 'Scribe: words → records', '230px')}{img('09_advisor_plan', 'Advisor: checked plan', '230px')}</div>"),
-        s(f"<h2>Cost to run</h2><p>gpt-6-luna · cached prompts · rules first, AI on tap</p><p class=big>{cost_line}</p><p>Hosting, not tokens, is most of the cost at 10,000 users</p>"),
-        s(f"<h2>Safety</h2><ul><li>Every Scribe field must quote the keeper</li><li>Advisor numbers must come from the records or tools; no doses; risks can't be dropped</li><li>Injection flagged and ignored; no tools that change anything</li><li>Daily $ cap, rate limit, access code, tool-round limit</li></ul><p class=big>{guards} · {attacks}</p>"),
-        (s(f"""<h2>Impact: a real keeper, a live hive</h2><div class=r style="align-items:center"><div style="flex:1.1;min-width:0">{img('20_field_1', 'The AI read honey as “capped brood”; the keeper caught it', '420px')}</div>
-<div style="flex:1;min-width:0;font-size:.62em;padding-right:10px"><ul><li>Frame Reader: <b>{FIELD['frame']['right']} right / {FIELD['frame']['wrong']} wrong / {FIELD['frame']['missed']} missed</b> on 2 frames; ~$0.0005 a read</li>
-<li>Closing taps confirmed: 4 of 4</li><li><b>Bugs:</b> both frames lost on ›/Done; voice notes never heard a word → fixed that evening (v0.7)</li>
-<li>“You need both your hands to do this” → talk once, after closing up</li></ul><p class=q>“{e(FIELD['quotes'][0])}”</p></div></div><p style="font-size:.55em;margin-top:10px"><b>Estimate:</b> save one colony every two winters ≈ $90/yr per keeper vs. well under $1/yr of AI</p>""") if FIELD else ""),
-        ("" if FIELD else s(f"<h2>Impact</h2><p class=big>{field}</p><p>Save one colony every two winters ≈ $90/yr per keeper vs. well under $1/yr of AI</p>")),
-        s("<h2>What's next</h2><ul><li>5–10 keepers through a club, a full season</li><li>Encrypted sync so mentors can see a newer keeper's records</li><li>Push reminders before freezes and strip-removal dates</li><li>A labelled frame-photo set to test or train the Frame Reader</li></ul>"),
-        s(f"<h2>Try it</h2><p>{REPO}</p><p>{LIVE_AI}</p><p class=muted>python server.py → localhost:8040</p>"),
-    ])
+    guards = f"{sum(r['stopped_it'] for r in GUARDS['results'])}/{len(GUARDS['results'])}" if GUARDS else "?"
+    attacks = f"{sum(a['blocked'] for a in live['attacks'])}/{len(live['attacks'])}" if live and live.get("attacks") else "?"
+
+    if live:
+        month = 4 * sf["cost"] + 16 * adv["cost"]
+        host = {100: 7, 10000: 85}
+        scale_rows = "".join(f"<tr><td>{u:,} keepers</td><td class=n>{money(month * u, 2)}</td><td class=n>${host[u]}</td><td class=n><b>{money(month * u + host[u], 2)}</b></td></tr>" for u in host)
+        cost = f"""<div class="two" style="grid-template-columns:1.35fr 1fr">
+<div><div class="stats"><div><b>{money(sf['cost'], 5)}</b><span>one spoken note → records<br>{sf['input']:,.0f} tokens in ({sf['cached'] / max(sf['input'], 1):.0%} cached), {sf['output']:,.0f} out</span></div>
+<div><b>{money(adv['cost'], 5)}</b><span>one checked plan<br>{adv['input']:,.0f} in, {adv['output']:,.0f} out, live forecast tool</span></div>
+<div><b>{money(month, 3)}</b><span>per keeper per month<br>4 notes + 16 plans or questions</span></div></div>
+<table class="tbl"><tr><th>At scale</th><th class=n>AI / month</th><th class=n>server</th><th class=n>total</th></tr>{scale_rows}</table>
+<p class="small">Kept low by: rules engine first (free), AI only on tap · cached shared prompt · last 3 visits only · photos shrunk to 768 px · daily $ cap. A leaner prompt saved nothing and was less accurate, so I kept the full one.</p></div>
+<div>{shot('11_ai_usage', 'Real token counts, shown in the app', 500)}</div></div>"""
+    else:
+        cost = pending("real token counts")
+
+    fr = FIELD.get("frame", {}) if FIELD else {}
+    title = f"""<div class="two" style="grid-template-columns:1.45fr 1fr;align-items:center;height:100%">
+<div><div class="kicker">MGT 409 · AI Foundations for Managers</div><h1>🐝 Hive notes</h1>
+<p class="pitch">Talk, tap or photograph a hive visit.<br>Get the next step, timed&nbsp;to&nbsp;the&nbsp;weather.</p>
+<p class="small" style="margin-top:28px">{AUTHOR} · November 2026<br>Tested with a working beekeeper on a live hive</p></div>
+<div style="text-align:center">{shot('02_yard', '', 560)}</div></div>"""
+
+    problem = f"""<h2>The problem, in a beekeeper's words</h2>
+<div class="two" style="grid-template-columns:.9fr 2fr;margin-top:12px">
+<div class="stats col"><div><b>55.6%</b><span>of US managed colonies lost in 2024–25, the worst on record</span></div>
+<div><b>$155–210</b><span>to replace one colony, plus a season of honey</span></div>
+<div><b>~120,000</b><span>US beekeepers, most with fewer than 25 hives</span></div></div>
+<div class="cards">
+<div class="card"><b>Notes mean taking your hands off the bees, so they get skipped or written later from memory.</b><p class="q">“That process is kind of difficult to handle the bees while taking the notes, especially because the bees' temperament can change at any moment.”</p></div>
+<div class="card"><b>A hive's health is judged by eye, frame by frame, and the weather matters.</b><p class="q">“Something that will analyze the health of the hive … like the plant thing.” “The degrees of it matters.”</p></div>
+<div class="card"><b>Knowing the next step takes years.</b><p class="q">“Tell you what to expect … the hive looks like it needs more sugar water … if the hive is going to swarm … help newer people figure out what the next step they should do in the hive.”</p></div>
+</div></div>
+<p class="small" style="margin-top:14px"><b>After trying the app at the hive, the keeper valued exactly these:</b> capturing the information “in real time”, seeing “whether there's honey, if there's brood”, and voice notes that make “an unsafe process … a little bit more safe.”</p>"""
+
+    new_ = """<h2>What's new</h2>
+<table class="tbl" style="margin-top:22px;font-size:.84em"><tr><th>What exists</th><th>Examples</th><th>What it can't do</th></tr>
+<tr><td>Inspection logs</td><td>HiveTracks, Hivecard, ApiaryOS</td><td>No prediction; you type everything</td></tr>
+<tr><td>Photo readers</td><td>BeeScanning, QueenRadar, Apizoom</td><td>One photo, no plan, no weather</td></tr>
+<tr><td>Hive sensors</td><td>BroodMinder, Bee Hive Monitoring</td><td>$100s of hardware per hive</td></tr>
+<tr><td>Chatbots</td><td>ChatGPT</td><td>Doesn't know your colonies or Thursday's freeze</td></tr></table>
+<div class="card hl" style="margin-top:34px;font-size:.9em;padding:18px 22px"><b>Hive notes:</b> what you saw + the <b>live forecast</b> + the colony's own trend → <b>a dated next step</b>.
+Talk once for the whole apiary; every AI answer is <b>checked against your records</b> before you see it. No hardware; records stay on your phone.</div>"""
+
+    agents = f"""<h2>How the agents work</h2><div class="two" style="grid-template-columns:2.1fr 1fr;align-items:center">
+<div>{DIAGRAM}</div><div class="small" style="font-size:.62em"><p><b>Scribe:</b> speech or text → visit records; every field must quote you.</p>
+<p><b>Frame Reader:</b> frame photo → suggested taps; you confirm.</p><p><b>Advisor:</b> plan or answer for one colony; calls the live forecast, history and label tools.</p>
+<p><b>Checker</b> (code, no AI): numbers must come from records or tools; no doses; retry once, else the rules plan.</p><p>All on <b>gpt-6-luna</b>: cheap, fast, strict JSON.</p></div></div>"""
+
+    demo = f"""<h2>Demo</h2><div class="r" style="margin-top:6px">{shot('02_yard', '1 · Apiary + live forecast', 500)}{shot('03_frame_taps', '2 · Frame by frame', 500)}{shot('08_scribe_result', '3 · Scribe: words → records', 500)}{shot('09_advisor_plan', '4 · Advisor: checked plan', 500)}</div>"""
+
+    safety = f"""<h2>Safety</h2><div class="two" style="grid-template-columns:1.6fr 1fr;align-items:center"><div>
+<ul class="small2"><li><b>Prompt injection:</b> notes and photos are data, never orders; flagged and ignored</li><li><b>Made-up facts:</b> each Scribe field must quote the keeper; Advisor numbers must exist in records or tool results</li>
+<li><b>Harmful advice:</b> no doses, only labelled products, high-risk findings can't be dropped</li><li><b>Runaway cost:</b> daily $ cap, per-device rate limit, access code, size limit, 4 tool rounds max</li></ul>
+<div class="stats" style="margin-top:14px"><div><b>{guards}</b><span>server guards held</span></div><div><b>{attacks}</b><span>live attacks blocked</span></div><div><b>17/17</b><span>code guard tests</span></div></div></div>
+<div>{shot('12_injection_blocked', 'A note that tries to give orders: flagged, ignored', 520)}</div></div>"""
+
+    impact = (f"""<h2>Impact: a real keeper, a live hive</h2><div class="two" style="grid-template-columns:1.1fr 1fr;align-items:center">
+<div>{shot('20_field_1', 'The AI read honey as “capped brood”; the keeper caught it', 420)}</div>
+<div class="small2"><ul><li>Frame Reader: <b>{fr.get('right')} right / {fr.get('wrong')} wrong / {fr.get('missed')} missed</b> on 2 frames, ~$0.0005 a read</li>
+<li>Closing taps confirmed: <b>4 of 4</b></li><li><b>2 bugs found</b> (frames lost on › / Done, voice notes heard nothing) and <b>fixed that evening</b></li></ul>
+<p class=q>“{e(FIELD['quotes'][0])}”</p><p class=q>“It kind of makes an unsafe process be a little bit more safe.”</p></div></div>
+<p class="small" style="margin-top:8px"><b>Estimate, not a result:</b> save one colony every two winters ≈ $90 a year per keeper, against well under $1 a year of AI.</p>""") if FIELD else pending("field test")
+
+    nxt = """<h2>What's next</h2><ul class="small2" style="margin-top:28px;font-size:.98em">
+<li><b>Voice first.</b> “You need both your hands to do this”: talk once after closing the hive, instead of tapping at it</li>
+<li><b>Prove the fixes:</b> a second field test of v0.7, and 100+ labelled frame photos to measure the Frame Reader (it called honey “brood”)</li>
+<li><b>5–10 keepers through a club, a full season:</b> colonies fed before the freeze, mite counts on time, losses</li>
+<li><b>Mentors:</b> encrypted sync so an experienced keeper can see a newer keeper's records; push reminders before freezes</li></ul>"""
+
+    tryit = f"""<h2>Try it</h2><div class="card hl" style="margin-top:28px;font-size:1.25em;padding:24px 30px"><p><b>Live app with AI</b><br>{LIVE_AI}<br><span class="small">access code in the Canvas comment · free server, first load can take a minute</span></p>
+<p><b>Code, README, report</b><br>{REPO}</p><p class="small">Run locally: <code>pip install -r requirements.txt</code> → <code>python server.py</code> → localhost:8040 (reads .env here or one folder up)</p></div>"""
+
+    body = "".join([s(title, "hero"), s(problem), s(new_), s(agents), s(demo), s("<h2>Cost to run</h2>" + cost), s(safety), s(impact), s(nxt), s(tryit)])
     return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Hive notes — slides</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
-<style>.reveal{{font-family:-apple-system,Segoe UI,sans-serif;color:#1f1a14}} .reveal h1,.reveal h2,.reveal h3{{font-family:inherit;color:#1f1a14;text-transform:none}}
-.reveal h2{{border-bottom:4px solid #c97d0c;display:inline-block;padding-bottom:4px}} .reveal .slides{{text-align:left}} .reveal ul{{display:block}}
-.reveal section{{background:#efe9df;border-radius:18px;padding:28px 40px;box-sizing:border-box}} .reveal .big{{font-size:1.15em;font-weight:700;color:#c97d0c}}
-.reveal .q{{font-style:italic;border-left:5px solid #c97d0c;padding-left:14px;font-size:.8em}} .reveal .r{{display:flex;gap:16px;justify-content:center}}
-.reveal figure{{margin:0;text-align:center}} .reveal figure img{{max-height:440px;border-radius:16px;border:1px solid #e2d7c4}} .reveal figcaption{{font-size:.45em;color:#6f6556}}
-.reveal .diagram{{width:100%;max-height:480px}} .reveal .muted{{color:#6f6556;font-size:.6em}} .pending{{background:#fff4cc;border:2px dashed #d9a400;padding:6px 10px;font-size:.5em;border-radius:8px}}</style>
+<style>
+.reveal{{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;color:#2b1d0e;font-size:34px}}
+.reveal .slides{{text-align:left}} .reveal h1,.reveal h2,.reveal h3{{font-family:inherit;color:#2b1d0e;text-transform:none;letter-spacing:-.5px}}
+.reveal h1{{font-size:2.5em;margin:6px 0 10px}} .reveal h2{{font-size:1.45em;border-bottom:5px solid #f5ae1f;display:inline-block;padding-bottom:4px;margin-bottom:6px}}
+.reveal .slides > section{{height:100%}} .reveal section{{background:#fff7e6;border-radius:22px;padding:30px 42px;box-sizing:border-box;border:2px solid #f3dfb2}}
+.reveal section.hero{{background:linear-gradient(155deg,#ffd65c,#f5ae1f);border-color:#e9a514}}
+.reveal .kicker{{font-size:.55em;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6b4a0d}}
+.reveal .pitch{{font-size:1.15em;font-weight:700;line-height:1.3}}
+.reveal .two{{display:grid;gap:26px}} .reveal .r{{display:flex;gap:18px;justify-content:center;align-items:flex-start}}
+.reveal .small{{font-size:.58em;line-height:1.4;color:#4a3a26}} .reveal .small2{{font-size:.7em;line-height:1.4}} .reveal .small2 li{{margin:10px 0}}
+.reveal .q{{font-style:italic;border-left:5px solid #f5ae1f;padding-left:12px;margin:8px 0 0;font-size:.95em;color:#4a3a26}}
+.reveal .card{{background:#fffdf8;border:1.5px solid #f0d9a6;border-radius:14px;padding:12px 16px;font-size:.64em;line-height:1.38}}
+.reveal .card.hl{{background:#fff1c7;border-color:#f5ae1f}} .reveal .cards{{display:grid;gap:12px}}
+.reveal .stats{{display:flex;gap:14px}} .reveal .stats.col{{flex-direction:column}}
+.reveal .stats > div{{flex:1;background:#2b1d0e;color:#fff7e6;border-radius:14px;padding:12px 16px}}
+.reveal .stats b{{display:block;font-size:1.2em;color:#ffc93c;line-height:1.1}} .reveal .stats span{{display:block;font-size:.5em;line-height:1.35;margin-top:4px}}
+.reveal .tbl{{width:100%;border-collapse:collapse;font-size:.58em;margin:12px 0}} .reveal .tbl th{{background:#f5ae1f;color:#2b1d0e;text-align:left;padding:7px 10px}}
+.reveal .tbl td{{border-bottom:1px solid #f0d9a6;padding:7px 10px;vertical-align:top}} .reveal .tbl td.n,.reveal .tbl th.n{{text-align:right}}
+.reveal figure{{margin:0;text-align:center}} .reveal figure img{{border-radius:16px;border:1px solid #e2d7c4;box-shadow:0 6px 18px #0002;max-width:100%}}
+.reveal figcaption{{font-size:.45em;color:#6f6556;margin-top:6px}} .reveal .diagram{{width:100%;max-height:520px;background:#fffdf8;border-radius:14px}}
+.reveal code{{font-size:.9em;background:#fff;border-radius:6px;padding:1px 6px}}
+.pending{{background:#fff4cc;border:2px dashed #d9a400;padding:6px 10px;font-size:.5em;border-radius:8px}}
+</style>
 </head><body><div class="reveal"><div class="slides">{body}</div></div>
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
-<script>Reveal.initialize({{hash:true,width:1200,height:760,margin:0.04}});</script></body></html>"""
-
+<script>Reveal.initialize({{hash:true,width:1280,height:800,margin:0.03,center:false}});</script></body></html>"""
 
 if __name__ == "__main__":
     (DOCS / "report.html").write_text(report(), encoding="utf-8")
