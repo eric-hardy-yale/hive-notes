@@ -8,7 +8,7 @@ const VISIT_TYPES = {
   treat: { label: "Treat", ic: "💊", d: "Start or remove a mite treatment" },
   mites: { label: "Mite count", ic: "🔬", d: "Wash, roll or sticky board" },
   harvest: { label: "Harvest", ic: "🫙", d: "Pull supers" },
-  move: { label: "Move", ic: "🚚", d: "To another yard" }
+  move: { label: "Move", ic: "🚚", d: "To another apiary" }
 };
 
 function draft() { return db.drafts.visit; }
@@ -43,9 +43,9 @@ screen("visitStart", {
     return `<div class="row"><h1 class="grow">${esc(c.name)} visit</h1></div>
       <p class="sub">Conditions are filled in for you.</p>
       <div class="card"><div class="kv"><span class="k">Date</span><span>${fmtD(TODAY)} · ${nowTime()} <span class="src">● auto</span></span>
-        <span class="k">Weather</span><span>${k.temp != null ? `${k.temp}°F · ${esc(k.sky)} · wind ${k.wind} mph <span class="src">● ${k.src === "now" ? "now" : "today's forecast"}</span>` : `<span class="small">No weather — ${y.lat == null ? "set the yard's location" : "no signal yet"}. You can still log the visit.</span>`}</span>
+        <span class="k">Weather</span><span>${k.temp != null ? `${k.temp}°F · ${esc(k.sky)} · wind ${k.wind} mph <span class="src">● ${k.src === "now" ? "now" : "today's forecast"}</span>` : `<span class="small">No weather — ${y.lat == null ? "set the apiary's location" : "no signal yet"}. You can still log the visit.</span>`}</span>
         <span class="k">Since last</span><span>${lv ? daysBetween(lv.date, TODAY) + " days" : "first visit"}</span></div></div>
-      <div class="note ${adv.level}"><b>${esc(adv.short)}.</b> ${esc(adv.text)}${adv.window ? `<br>🕐 Best window today: <b>${esc(adv.window)}</b> · it's ${nowTime()} now` : ""}</div>
+      <div class="note ${adv.level}"><b>${esc(adv.short)}${adv.window && new Date().getHours() < 9 ? " today, but not yet" : ""}.</b> ${esc(adv.text)}${adv.window ? `<br>🕐 Best window today: <b>${esc(adv.window)}</b> · it's ${nowTime()} now` : ""}</div>
       ${lv ? `<div class="card small" style="color:var(--ink)"><b>Last time (${fmtShort(lv.date)}):</b> ${esc([lv.queen === "seen" ? "queen seen" : lv.eggs ? "eggs seen" : null, lv.broodFrames != null ? `brood ${lv.broodFrames} frames` : null, lv.storesLb != null ? `~${lv.storesLb} lb stores` : null, lv.note].filter(Boolean).join(" · "))}</div>` : ""}
       ${ns.length ? `<div class="card"><b>Do today</b>${ns.slice(0, 4).map(n => `<div class="small" style="margin-top:4px">→ ${esc(n.action)}</div>`).join("")}</div>` : ""}
       <h2>What kind of visit?</h2>
@@ -117,7 +117,7 @@ screen("visitCam", {
       <div class="between"><h1 style="font-size:21px;margin:4px 0">Box ${camBox + 1} · Frame ${camFrame} of ${b.frames}</h1><span>${camFrame > 1 ? `<button class="btn sm ghost" id="prevF">‹</button>` : ""}<button class="btn sm ghost" id="nextF">›</button></span></div>
       ${shot}
       ${photo && d.pending && aiOn() ? `<button class="btn sm dark" id="aiRead">🤖 Read this photo</button>` : ""}
-      ${d.aiRead && d.aiRead.key === d.pending ? `<div class="note">🤖 AI suggested the taps below (${esc(d.aiRead.confidence || "?")} confidence)${d.aiRead.problem ? ` — ${esc(d.aiRead.problem)}` : ""}. Check them before saving.${usageLine(d.aiRead.usage)}</div>` : `<div class="small" style="margin:4px 0 2px">The photo is optional — the taps below are what the app reads.</div>`}
+      ${d.aiRead && d.aiRead.key === d.pending ? `<div class="note">🤖 AI suggested the taps below (${esc(d.aiRead.confidence || "?")} confidence)${d.aiRead.problem ? ` — ${esc(d.aiRead.problem)}` : ""}. Check them before saving.${usageLine(d.aiRead.usage)}</div>` : `<div class="small" style="margin:6px 0 12px">Photo optional. The taps below are what count; with a photo, the AI can suggest them.</div>`}
       <div class="q"><div class="lbl">On this frame</div>${chips("sees", SEES, sel.sees, true)}</div>
       ${sel.sees.some(x => x === "honey" || x === "nectar") ? `<div class="q"><div class="lbl">How full of honey/nectar</div>${chips("amount", [["1", "Full"], ["0.75", "¾"], ["0.5", "½"], ["0.25", "¼"]], sel.amount || "0.5", false, true)}</div>` : ""}
       ${sel.sees.some(x => x === "capped" || x === "larvae" || x === "eggs") ? `<div class="q"><div class="lbl">Brood pattern</div>${chips("pattern", [["solid", "Solid"], ["spotty", "Spotty"]], sel.pattern || "solid", false, true)}</div>` : ""}

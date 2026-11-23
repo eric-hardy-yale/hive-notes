@@ -43,7 +43,7 @@ h2 { font-size: 16px; margin: 18px 0 8px; }
 .btn.danger { background: transparent; color: var(--risk); border: 1.5px solid var(--risk); }
 .btn.sm { display: inline-block; width: auto; padding: 8px 12px; font-size: 14px; margin: 4px 4px 0 0; }
 .link { background: none; border: 0; color: var(--honey); font-weight: 600; font-size: 14px; cursor: pointer; padding: 4px 0; font-family: inherit; }
-.forecast { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.forecast { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 4px; }
 .day { flex: 0 0 50px; text-align: center; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 6px 0; font-size: 11.5px; }
 .day b { display: block; font-size: 15px; margin-top: 2px; }
 .day.cold { background: var(--sky-soft); border-color: #b9d0e8; }
@@ -216,3 +216,12 @@ img.mini { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; fle
 .spin { width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid var(--line); border-top-color: var(--honey); display: inline-block; animation: spin .8s linear infinite; vertical-align: -3px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .quote { color: var(--muted); font-style: italic; }
+/* AI helper: Save & test result, shown right under the button */
+.aitest { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--paper); font-size: 14px; line-height: 1.35; }
+.aitest.good { background: var(--ok-soft); color: var(--ok); }
+.aitest.bad { background: var(--risk-soft); color: var(--risk); }
+.aitest .small { color: inherit; opacity: .8; margin-top: 3px; }
+details.adv { margin: 4px 0 10px; font-size: 13px; color: var(--muted); }
+details.adv summary { cursor: pointer; padding: 6px 0; }
+.phone.dark .aitest.good { background: #1d3320; color: #bfe3c3; }
+.phone.dark .aitest.bad { background: #3a1f19; color: #f2c3b6; }

@@ -222,14 +222,14 @@ def section_trace() -> str:
     tools = ", ".join(a["tools"]) or "none"
     adv = a["advice"]
     return f"""
-<p>Here is one real run from the test set, end to end. The keeper talks through the yard; the Scribe turns it into records; the keeper saves; then the Advisor plans for the colony that needs it.</p>
+<p>Here is one real run from the test set, end to end. The keeper talks through the apiary; the Scribe turns it into records; the keeper saves; then the Advisor plans for the colony that needs it.</p>
 <h3>Step 1 — Scribe (note {e(s['id'])}: three colonies in one breath)</h3>
 <p>{s['rounds']} model round(s). Tools called: {e(', '.join(s['tools']) or 'none (the colony list was in the message)')}.
 Tokens: {s['usage']['input']:,} in ({s['usage']['cached']:,} cached), {s['usage']['output']:,} out → {money(s['usage']['cost_usd'], 5)}.
 Fields right: {s['score']['right']}; wrong: {s['score']['wrong']}; missed: {s['score']['missed']}. Left out by the quote check: {len(s['dropped'])}.</p>
-<div class="row">{img('07_talk_input', 'The keeper talks or types once for the whole yard.')}{img('08_scribe_result', 'The Scribe’s records, each item with the words it came from.')}</div>
+<div class="row">{img('07_talk_input', 'The keeper talks or types once for the whole apiary.')}{img('08_scribe_result', 'The Scribe’s records, each item with the words it came from.')}</div>
 <h3>Step 2 — Advisor (case: “{e(a['case'])}”)</h3>
-<p>{a['rounds']} model rounds. Tools called, in order: <b>{e(tools)}</b>. The forecast tool fetched the live Open-Meteo forecast for the yard.
+<p>{a['rounds']} model rounds. Tools called, in order: <b>{e(tools)}</b>. The forecast tool fetched the live Open-Meteo forecast for the apiary.
 Checker: {"<span class=ok>passed on the first try</span>" if a['checks']['passed'] and not a['checks']['retried'] else "<span class=ok>fixed on retry</span> after: " + e('; '.join(a['checks']['first_try_problems'])) if a['checks']['passed'] else "<span class=bad>withheld</span>; the rules plan was shown"}.
 Tokens: {a['usage']['input']:,} in ({a['usage']['cached']:,} cached), {a['usage']['output']:,} out → {money(a['usage']['cost_usd'], 5)}.</p>
 <div class=box><b>{e(adv.get('headline', ''))}</b><ul>{''.join(f"<li>{e(d['action'])}{' — by ' + e(d['by']) if d.get('by') else ''} <span class=muted>({e(d['why'])})</span></li>" for d in adv.get('do_next', []))}</ul></div>
@@ -318,7 +318,7 @@ def report() -> str:
 <div class="links"><b>{AUTHOR}</b> · MGT 409 AI Foundations for Managers · Final project, November 2026<br>
 Repo: <a href="{REPO}">{REPO}</a><br>
 Live app with AI: <a href="{LIVE_AI}">{LIVE_AI}</a> (access code in the Canvas comment) · Phone-only copy: <a href="{LIVE_PAGES}">{LIVE_PAGES}</a></div>
-<div class="row">{img('02_yard', 'The yard screen: live 10-day forecast, freeze warning, and each colony’s most urgent need.')}{img('04_summary_rules', 'After a visit: how it looks now and what to expect, each with “how sure” and “why”.')}</div>
+<div class="row">{img('02_yard', 'The apiary screen: live 10-day forecast, freeze warning, and each colony’s most urgent need.')}{img('04_summary_rules', 'After a visit: how it looks now and what to expect, each with “how sure” and “why”.')}</div>
 
 <h2>1. Motivation</h2>
 <p>The person behind this app is a working beekeeper I know. I asked what an app could do for them, and the first answer was the honest one:</p>
@@ -340,7 +340,7 @@ The work costs too: an inspection is done with gloves on, in a veil, with bees i
 <tr><td>ChatGPT and other chatbots</td><td>A newer keeper can ask anything.</td><td>It doesn't know your colonies, the last visit, or Thursday's freeze, and nothing checks its numbers.</td></tr></table>
 <p><b>What Hive notes does differently:</b></p>
 <ul><li><b>Predictions from what the keeper sees plus the live forecast, with no hardware.</b> For example: “About 48 lb by Tuesday's freeze, this hive needs ~60, so feed 2:1 before Tuesday. Monday 9 AM–4 PM is the window.” It also tracks whether its own predictions came true.</li>
-<li><b>Talk once for the whole yard.</b> With gloves on, the keeper says what they saw. The Scribe splits it by colony and shows the exact words behind every field.</li>
+<li><b>Talk once for the whole apiary.</b> With gloves on, the keeper says what they saw. The Scribe splits it by colony and shows the exact words behind every field.</li>
 <li><b>AI that is checked before you see it.</b> Quote-grounding, number-grounding, no doses, no dropped risks. A failed answer is retried once and otherwise replaced by the rules plan. Most AI beekeeping apps show the model's answer as-is.</li>
 <li><b>Private by default.</b> Records and photos stay on the phone, which matters because hive theft is real. The AI sees one colony's record only when the keeper taps a 🤖 button.</li></ul>
 
@@ -390,9 +390,9 @@ def slides() -> str:
     body = "".join([
         s(f"<h1>🐝 Hive notes</h1><h3>What to expect and what to do next, from what you see at the hive and the weather</h3><p>{AUTHOR} · MGT 409 · Nov 2026</p>"),
         s("<h2>The problem</h2><ul><li>US keepers lost <b>55.6%</b> of colonies in 2024–25, the worst on record</li><li>Most are hobbyists with fewer than 25 hives, learning as they go</li><li>Losses come down to timing: feed before the freeze, count mites, catch a queenless nuc</li></ul><p class=q>“help newer people … figure out what the next step they should do in the hive” — a working beekeeper</p>"),
-        s("<h2>What's new</h2><ul><li>Note apps log. Camera apps read one photo. Sensor apps need hardware.</li><li><b>Hive notes:</b> your observations + <b>live forecast</b> + the colony's trend → a dated next step</li><li>Talk once for the whole yard; AI answers <b>checked</b> before you see them</li><li>No hive hardware; records stay on your phone</li></ul>"),
+        s("<h2>What's new</h2><ul><li>Note apps log. Camera apps read one photo. Sensor apps need hardware.</li><li><b>Hive notes:</b> your observations + <b>live forecast</b> + the colony's trend → a dated next step</li><li>Talk once for the whole apiary; AI answers <b>checked</b> before you see them</li><li>No hive hardware; records stay on your phone</li></ul>"),
         s(f"<h2>How the agents work</h2>{DIAGRAM}"),
-        s(f"<h2>Demo</h2><div class=r>{img('02_yard', 'Yard + live forecast', '230px')}{img('08_scribe_result', 'Scribe: words → records', '230px')}{img('09_advisor_plan', 'Advisor: checked plan', '230px')}</div>"),
+        s(f"<h2>Demo</h2><div class=r>{img('02_yard', 'Apiary + live forecast', '230px')}{img('08_scribe_result', 'Scribe: words → records', '230px')}{img('09_advisor_plan', 'Advisor: checked plan', '230px')}</div>"),
         s(f"<h2>Cost to run</h2><p>gpt-6-luna · cached prompts · rules first, AI on tap</p><p class=big>{cost_line}</p><p>Hosting, not tokens, is most of the cost at 10,000 users</p>"),
         s(f"<h2>Safety</h2><ul><li>Every Scribe field must quote the keeper</li><li>Advisor numbers must come from the records or tools; no doses; risks can't be dropped</li><li>Injection flagged and ignored; no tools that change anything</li><li>Daily $ cap, rate limit, access code, tool-round limit</li></ul><p class=big>{guards} · {attacks}</p>"),
         s(f"<h2>Impact</h2><p class=big>{field}</p><p>Save one colony every two winters ≈ $90/yr per keeper vs. well under $1/yr of AI</p>"),

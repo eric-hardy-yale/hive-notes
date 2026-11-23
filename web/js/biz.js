@@ -122,7 +122,7 @@ screen("biz", {
 });
 
 function exportAll() {
-  csvDownload("colonies.csv", [["colony", "yard", "status", "setup", "queen_year", "queen_marked", "last_visit", "stores_lb", "last_mites", "active_treatment"],
+  csvDownload("colonies.csv", [["colony", "apiary", "status", "setup", "queen_year", "queen_marked", "last_visit", "stores_lb", "last_mites", "active_treatment"],
     ...db.colonies.map(c => { const lv = lastVisit(c.id), m = mitesOf(c.id).slice(-1)[0], t = treatsOf(c.id).find(x => !x.done); return [c.name, yardOf(c.yardId)?.name, c.status, describeSetup(c), c.queen?.year || "", c.queen?.marked ? "yes" : "no", lv?.date || "", lv?.storesLb ?? "", m ? `${m.count}/${m.sample} ${m.date}` : "", t ? `${t.product} until ${t.removeBy}` : ""]; })]);
 }
 
@@ -134,8 +134,8 @@ screen("report", {
     const tr = db.treatments.filter(t => cs.some(c => c.id === t.colonyId)).sort((a, b) => b.start.localeCompare(a.start));
     return `<div class="noprint row" style="gap:6px"><button class="btn" id="print">🖨 Print / Save as PDF</button></div>
       <div class="report"><h1 style="font-size:20px">${p.id ? `Colony report · ${esc(cs[0].name)}` : "Apiary report"}</h1>
-      <div class="small">Prepared ${fmtD(TODAY)}${r.state ? ` · registration ${esc(r.state)}` : ""}${r.renewBy ? `, renew by ${fmtD(r.renewBy, false)}` : ""}${r.lastInspection ? ` · last inspection ${fmtD(r.lastInspection, false)}` : ""}. Yard locations left out.</div>
-      <table><tr><th>Colony</th><th>Yard</th><th>Setup</th><th>Queen</th><th>Last visit</th><th>Stores</th><th>Mites</th></tr>
+      <div class="small">Prepared ${fmtD(TODAY)}${r.state ? ` · registration ${esc(r.state)}` : ""}${r.renewBy ? `, renew by ${fmtD(r.renewBy, false)}` : ""}${r.lastInspection ? ` · last inspection ${fmtD(r.lastInspection, false)}` : ""}. Apiary locations left out.</div>
+      <table><tr><th>Colony</th><th>Apiary</th><th>Setup</th><th>Queen</th><th>Last visit</th><th>Stores</th><th>Mites</th></tr>
       ${cs.map(c => { const lv = lastVisit(c.id), m = mitesOf(c.id).slice(-1)[0], st = storesNow(c); return `<tr><td>${esc(c.name)}</td><td>${esc(yardOf(c.yardId)?.name)}</td><td>${esc(describeSetup(c))}</td><td>${c.queen?.year || "?"}${c.queen?.marked ? ` (${queenColor(c.queen.year)})` : ""}</td><td>${lv ? fmtShort(lv.date) : "—"}</td><td>${st ? `~${st.lb} lb` : "—"}</td><td>${m ? `${m.count}/${m.sample} ${fmtShort(m.date)}` : "—"}</td></tr>`; }).join("")}</table>
       <h2>Treatments</h2><table><tr><th>Colony</th><th>Product</th><th>Start</th><th>Removed</th></tr>
       ${tr.map(t => `<tr><td>${esc(col(t.colonyId)?.name)}</td><td>${esc(t.product)}</td><td>${fmtShort(t.start)}</td><td>${t.removeBy ? (t.done ? fmtShort(t.removed || t.removeBy) : `in — by ${fmtShort(t.removeBy)}`) : "single dose"}</td></tr>`).join("") || `<tr><td colspan="4">None</td></tr>`}</table>

@@ -1,6 +1,6 @@
 /* Data layer: storage, weather, photos, small helpers.
    Records live on this phone (localStorage); photos in IndexedDB.
-   The only thing sent out is a yard's rounded location, to Open-Meteo, for the forecast. */
+   The only thing sent out is an apiary's rounded location, to Open-Meteo, for the forecast. */
 
 const TODAY = isoD(new Date());
 function nowTime() { return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }); }
@@ -88,7 +88,7 @@ const wxIcon = code => (WX[code] || ["·", "—"])[0];
 const wxText = code => (WX[code] || ["·", "Unknown"])[1];
 const hourLabel = h => `${((h + 11) % 12) + 1} ${h < 12 ? "AM" : "PM"}`;
 
-// Forecast days from today on. Empty until the yard has a location and the phone has had signal once.
+// Forecast days from today on. Empty until the apiary has a location and the phone has had signal once.
 // Today's best window only counts the hours still ahead.
 function forecastFor(yardId) {
   const w = db.weather?.[yardId]; if (!w) return [];

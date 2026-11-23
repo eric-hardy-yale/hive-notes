@@ -2,7 +2,7 @@
 
 const SCREENS = {};
 let stack = [];
-const TABS = [["yard", "🏡", "Yard"], ["plan", "📅", "Plan"], ["learn", "📖", "Learn"], ["biz", "🧾", "Business"], ["more", "⚙️", "More"]];
+const TABS = [["yard", "🏡", "Apiary"], ["plan", "📅", "Plan"], ["learn", "📖", "Learn"], ["biz", "🧾", "Business"], ["more", "⚙️", "More"]];
 
 function screen(name, def) { SCREENS[name] = def; }
 function titleOf(entry) { const d = SCREENS[entry.name]; return typeof d.title === "function" ? d.title(entry.params) : (d.title || "Back"); }
@@ -24,7 +24,8 @@ function render(keepScroll = false) {
   document.getElementById("tabbar").style.display = def.notabs ? "none" : "flex";
   document.getElementById("tabbar").innerHTML = TABS.map(([k, ic, t]) => `<div data-tab="${k}" class="${k === tab ? "act" : ""}"><span class="ic">${ic}</span>${t}</div>`).join("");
   const fab = document.getElementById("fab");
-  if (def.fab) { fab.style.display = "block"; fab.innerHTML = def.fab.label; fab.onclick = def.fab.onclick; } else fab.style.display = "none";
+  const fb = typeof def.fab === "function" ? def.fab(cur.params || {}) : def.fab;
+  if (fb) { fab.style.display = "block"; fab.innerHTML = fb.label; fab.onclick = fb.onclick; } else fab.style.display = "none";
   const ph = document.getElementById("phone");
   ph.classList.toggle("new", !!db.settings.newMode);
   ph.classList.toggle("field", !!db.settings.fieldMode);
@@ -88,9 +89,9 @@ function needCard(n, withAction = false) {
 
 function forecastStrip(yardId) {
   const fc = forecastFor(yardId).slice(0, 7), y = yardOf(yardId), age = wxAge(yardId);
-  if (!fc.length) return `<div class="note">${y?.lat == null ? `No forecast — this yard has no location yet. <button class="link" data-yardloc="${yardId}">Set location</button>` : navigator.onLine ? "Loading the forecast…" : "No forecast yet — it loads the next time the phone has signal."}</div>`;
+  if (!fc.length) return `<div class="note">${y?.lat == null ? `No forecast — this apiary has no location yet. <button class="link" data-yardloc="${yardId}">Set location</button>` : navigator.onLine ? "Loading the forecast…" : "No forecast yet — it loads the next time the phone has signal."}</div>`;
   return `${age != null && age >= 3 ? `<div class="small" style="margin-bottom:4px">Forecast from ${age >= 24 ? Math.round(age / 24) + " day(s)" : age + " h"} ago${navigator.onLine ? "" : " (offline)"}</div>` : ""}<div class="forecast">${fc.map(d => `<div class="day tap ${d.lo <= 32 ? "cold" : goodDay(d) ? "good" : ""}" data-day="${yardId}|${d.date}">${DOW[parseD(d.date).getDay()]}<b>${d.hi}°</b>${d.lo <= 32 ? `low ${d.lo}°` : d.sky}</div>`).join("")}</div>
-    <div class="small" style="margin:-4px 0 6px">Tap a day: should I open it?</div>`;
+    <div class="small" style="margin:0 0 6px">Tap a day: should I open it?</div>`;
 }
 function dayAdvice(yardId, date) {
   const d = forecastFor(yardId).find(x => x.date === date); if (!d) return;

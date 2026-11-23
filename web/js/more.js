@@ -1,4 +1,4 @@
-/* More: yards, alerts, display, region, backup/restore, limits */
+/* More: apiaries, alerts, display, region, backup/restore, limits */
 
 // Save a file: the phone's share sheet when it can take files (→ Save to Files, AirDrop), else a download
 async function saveFile(name, blob) {
@@ -46,10 +46,11 @@ screen("more", {
     const NOTES = [["freeze", "Cold snaps & feeding windows"], ["strips", "Treatment strip removal"], ["feed", "Feeding"], ["swarm", "Swarm season checks"], ["mites", "Mite counts due"], ["queen", "Queen problems"], ["spray", "Pesticide spray nearby"], ["registration", "Registration & paperwork"], ["other", "Everything else (pests, brood pace, visits)"]];
     const daysSince = s.lastBackup ? daysBetween(s.lastBackup, TODAY) : null;
     return `<h1>More</h1>
-      <h2>Yards</h2>${db.yards.map(y => `<div class="card tap" data-yardedit="${y.id}"><div class="between"><b>${esc(y.name)}</b><span class="small">${activeIn(y.id).length} colonies ›</span></div>
+      <h2>Apiaries</h2>${db.yards.map(y => `<div class="card tap" data-yardedit="${y.id}"><div class="between"><b>${esc(y.name)}</b><span class="small">${activeIn(y.id).length} ${activeIn(y.id).length === 1 ? "colony" : "colonies"} ›</span></div>
         <div class="small">${y.lat != null ? `📍 ${esc(y.place || "location set")}` : "⚠️ No location — no forecast"}${y.signal === "none" ? " · no signal there" : ""}</div></div>`).join("")}
-      <button class="btn ghost" id="addYard">+ Add a yard</button>
-      <h2>Alerts in the app</h2><div class="small">Shown under the 🔔 on the yard screen. Each says why.</div>
+      <button class="btn ghost" id="addYard">+ Add an apiary</button>
+      ${aiSettingsHtml()}
+      <h2>Alerts in the app</h2><div class="small">Shown under the 🔔 on the apiary screen. Each says why.</div>
       <div class="card">${NOTES.map(([k, l]) => `<div class="toggle${nt[k] ? " on" : ""}" data-note="${k}"><span class="sw"></span>${l}</div>`).join("")}</div>
       <h2>In the field</h2>
       ${toggle("fieldMode", "Field mode — bigger text and buttons, higher contrast (gloves, sun)")}
@@ -59,7 +60,6 @@ screen("more", {
       <div class="small" style="margin-top:4px">${esc(region().note)} Shifts the season calendar and winter-stores targets (a two-deep hive needs ~${winterTarget({ type: "hive", boxes: [{ depth: "deep", frames: 10 }, { depth: "deep", frames: 10 }] })} lb here).</div>
       <h2>Country (for treatment rules)</h2>${chips("country", Object.entries(COUNTRIES), s.country || "US", false, true)}
       <div class="small" style="margin-top:4px">The treatment screen flags products that may not be registered here. It's a starting list — confirm with your state or national list.</div>
-      ${aiSettingsHtml()}
       <h2>Your data</h2>
       <div class="note ${daysSince == null || daysSince > 30 ? "warn" : "ok"}">🔒 Everything is stored only on this phone. ${daysSince == null ? "<b>No backup yet.</b> If the phone is lost or the app is deleted, so are your records." : `Last backup ${daysSince === 0 ? "today" : daysSince + " days ago"}.`}</div>
       <button class="btn" id="backup">Back up records (small file)</button>
@@ -70,7 +70,7 @@ screen("more", {
       <button class="btn ghost" data-nav="report">🖨 Report for inspectors (print / PDF)</button>
       <h2>Limits</h2>
       <div class="card small" style="color:var(--ink)">This is decision support from rules of thumb, not a vet or inspector. Every prediction shows its reasons and how sure it is. The app doesn't look at your photos — it works from your taps. Confirm mites with a wash, and anything like foulbrood with the rope test and your state apiarist. Follow treatment labels and your state's rules.</div>
-      <div class="small" style="margin-top:8px">Weather: Open-Meteo (only each yard's rounded location is sent). Prototype, ${APP_VERSION}.</div>
+      <div class="small" style="margin-top:8px">Weather: Open-Meteo (only each apiary's rounded location is sent). Prototype, ${APP_VERSION}.</div>
       <button class="btn danger" id="wipe">Delete everything on this phone</button><div style="height:20px"></div>`;
   },
   mount(p, v) {
@@ -86,7 +86,7 @@ screen("more", {
     v.querySelector("#backupP").onclick = () => { toast("Packing photos…"); backup(true); };
     v.querySelector("#restore").onchange = e => restoreFrom(e.target.files[0]);
     v.querySelector("#wipe").onclick = async () => {
-      if (!confirm("Delete every yard, colony, visit and photo on this phone? This can't be undone. Back up first if you might want them.")) return;
+      if (!confirm("Delete every apiary, colony, visit and photo on this phone? This can't be undone. Back up first if you might want them.")) return;
       for (const k of await photoKeys()) await photoDel(k);
       resetDb(); stack = [{ name: "setup", params: {} }]; render(); toast("Everything deleted");
     };

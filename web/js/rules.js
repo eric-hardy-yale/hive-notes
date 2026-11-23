@@ -15,7 +15,7 @@ function firstFreeze(fc) { const d = fc.find(x => x.lo <= 32); return d ? d.date
 function goodDay(d) { return d.hi >= 50 && !d.rain && d.wind < 15; }
 
 function openAdvice(day) {
-  if (!day) return { level: "info", text: "No forecast yet — it loads once this yard has a location and the phone has signal.", short: "No forecast yet", window: null };
+  if (!day) return { level: "info", text: "No forecast yet — it loads once this apiary has a location and the phone has signal.", short: "No forecast yet", window: null };
   const win = fb => day.hours?.length ? day.window : fb;   // with hourly data, no window means no good hours left
   if (day.past) return { level: "info", text: `Too late to open today — it's getting dark${day.sunset ? ` (sunset ${day.sunset})` : ""}. Check the coming days.`, short: "Done for today", window: null };
   if (day.rain) return { level: "risk", text: "Rain — don't open. Bees are home and defensive; brood chills.", short: "Don't open", window: null };
@@ -189,10 +189,10 @@ function needsFor(c) {
       shb: { level: "warn", title: "Small hive beetles seen", action: "Add beetle traps; take away empty space the bees can't guard", why: "Beetle larvae ruin comb and honey when a colony is weak or has too much room." },
       moth: { level: "info", title: "Wax moth seen", action: "Pull frames the bees can't cover; freeze stored comb 48 h", why: "Wax moths take over comb the bees aren't patrolling." },
       mice: { level: "warn", title: "Mouse signs", action: "Put on a mouse guard", why: "Mice move into hives when nights turn cold and chew comb all winter." },
-      yj: { level: "warn", title: "Yellowjackets at the hive", action: "Reduce the entrance; trap them away from the yard", why: "Yellowjackets kill bees and rob weak colonies in late summer and fall." },
+      yj: { level: "warn", title: "Yellowjackets at the hive", action: "Reduce the entrance; trap them away from the apiary", why: "Yellowjackets kill bees and rob weak colonies in late summer and fall." },
       ants: { level: "info", title: "Ants", action: "Put stand legs in oil or grease", why: "Ants steal syrup and stress the colony." },
       robbing: { level: "risk", title: "Being robbed", action: "Reduce the entrance to a bee-width or add a robbing screen; no open syrup", why: "Robbing fights at the entrance can empty a colony in days, and robbers spread mites." },
-      bear: { level: "risk", title: "Bear damage", action: "Electric fence (bait the wire); strap the boxes", why: "A bear that finds a yard comes back." }
+      bear: { level: "risk", title: "Bear damage", action: "Electric fence (bait the wire); strap the boxes", why: "A bear that finds an apiary comes back." }
     };
     seen.forEach(k => { const x = P[k]; if (!x || (k === "mice" && guardOn)) return;
       out.push({ key: "pest", level: x.level, short: x.title.split(" ")[0] === "Being" ? "Robbing" : x.title, title: x.title, detail: `Logged on ${fmtShort(lv.date)}.`, why: x.why, action: x.action, due: addDays(TODAY, x.level === "risk" ? 1 : 7) }); });
@@ -204,12 +204,12 @@ function needsFor(c) {
     if (since > 21 && !isWinter) out.push({ key: "visit", level: "info", short: `${since} days since visit`, title: "Visit overdue", detail: `Last visit ${fmtD(lv.date)}.`, why: "Every 2–3 weeks in season catches problems early.", action: "Visit", due: TODAY });
   }
   const heaviest = Math.max(...c.boxes.map(b => boxLb(b, 0.9)));
-  if (heaviest > 50) out.push({ key: "lift", level: "info", short: null, title: `Heaviest box ~${heaviest} lb`, detail: "Get help, or lift frames out first.", why: `${c.boxes[0].depth} boxes full of honey. Weight estimate from box depth and frame count.` });
+  if (false && heaviest > 50) out.push({ key: "lift", level: "info", short: null, title: `Heaviest box ~${heaviest} lb`, detail: "Get help, or lift frames out first.", why: `${c.boxes[0].depth} boxes full of honey. Weight estimate from box depth and frame count.` });
 
-  // --- yard events ---
+  // --- apiary events ---
   const y = yardOf(c.yardId);
   if (y?.spray?.date && daysBetween(TODAY, y.spray.date) >= 0 && daysBetween(TODAY, y.spray.date) <= 7)
-    out.push({ key: "spray", level: "warn", short: "Spray nearby", title: "Pesticide spray nearby", detail: y.spray.text || `Spray planned ${fmtD(y.spray.date)}.`, why: "You noted a planned spray near this yard.", action: "Close or screen the entrance the night before", due: addDays(y.spray.date, -1) });
+    out.push({ key: "spray", level: "warn", short: "Spray nearby", title: "Pesticide spray nearby", detail: y.spray.text || `Spray planned ${fmtD(y.spray.date)}.`, why: "You noted a planned spray near this apiary.", action: "Close or screen the entrance the night before", due: addDays(y.spray.date, -1) });
 
   out.forEach(n => { n.conf = n.conf || confFor(n, c, isSpring); });
   const rank = { risk: 0, warn: 1, info: 2, ok: 3 };
@@ -298,10 +298,10 @@ function comeBack(c) {
   const pick = cands.slice(-1)[0] || fc.find(d => d.date > TODAY && goodDay(d));
   if (!pick) return null;
   const fr = firstFreeze(fc);
-  return { date: pick.date, hi: pick.hi, why: fr && pick.date < fr ? `Last warm day (${pick.hi}°) before the freeze.` : `Good weather (${pick.hi}°), before ${fmtShort(due)}.` };
+  return { date: pick.date, hi: pick.hi, why: fr && pick.date < fr ? `Last warm day (${pick.hi}°) before the freeze.` : due <= TODAY ? `Next good day (${pick.hi}°). It's already due, so today works too if the weather allows.` : `Good weather (${pick.hi}°), before ${fmtShort(due)}.` };
 }
 
-/* Packing list for a yard run */
+/* Packing list for a trip to the apiary */
 function packingFor(colonies) {
   const list = { "Hive tool": 1, "Smoker + fuel": 1, "Veil / gloves": 1 }, why = {};
   colonies.forEach(c => needsFor(c).forEach(n => {
@@ -314,7 +314,7 @@ function packingFor(colonies) {
   return { list, why };
 }
 
-/* Yard-wide alerts for the home screen */
+/* Apiary-wide alerts for the home screen */
 function yardAlerts(yardId) {
   const fc = forecastFor(yardId), fr = firstFreeze(fc), cs = activeIn(yardId);
   const urgent = cs.filter(c => needsFor(c).some(n => (n.level === "risk" || n.level === "warn") && n.due && (!fr || n.due <= addDays(fr, 0))));

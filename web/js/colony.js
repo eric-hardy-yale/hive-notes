@@ -141,8 +141,8 @@ function promoteSheet(c) {
 }
 
 function moveSheet(c) {
-  sheet(`<h3>Move ${esc(c.name)}</h3><div class="q"><div class="lbl">To yard</div>${chips("yard", db.yards.map(y => [y.id, y.name]), c.yardId, false, true)}</div>
-    <div class="q"><div class="lbl">Why</div>${chips("why", ["Forage", "Pollination", "Too many in one yard", "Sold / delivering", "Other"], "Forage", false, true)}</div>
+  sheet(`<h3>Move ${esc(c.name)}</h3><div class="q"><div class="lbl">To apiary</div>${chips("yard", db.yards.map(y => [y.id, y.name]), c.yardId, false, true)}</div>
+    <div class="q"><div class="lbl">Why</div>${chips("why", ["Forage", "Pollination", "Too many in one apiary", "Sold / delivering", "Other"], "Forage", false, true)}</div>
     <div class="note">Move more than 3 miles or less than 3 feet, or foragers fly back to the old spot. Close the entrance the night before.</div>
     <button class="btn" id="save">Move</button><button class="btn ghost" data-close>Cancel</button>`, s => {
     s.querySelector("#save").onclick = () => { const to = chipVal(s, "yard"); if (to !== c.yardId) { addEvent(c.id, "move", `Moved ${yardOf(c.yardId).name} → ${yardOf(to).name} (${chipVal(s, "why")})`); c.yardId = to; saveDb(); } closeSheet(); rerender(); };
@@ -278,7 +278,7 @@ function colonySummary(c) {
 function shareSheet(c) {
   const text = colonySummary(c);
   sheet(`<h3>Send a summary of ${esc(c.name)}</h3>
-    <div class="small">For a mentor or club friend. No yard location is included. Edit it first if you like.</div>
+    <div class="small">For a mentor or club friend. No apiary location is included. Edit it first if you like.</div>
     <textarea id="txt" rows="10">${esc(text)}</textarea>
     <button class="btn" id="go">${navigator.share ? "Share…" : "Copy text"}</button><button class="btn ghost" data-close>Close</button>`, s => {
     s.querySelector("#go").onclick = async () => {
@@ -297,6 +297,7 @@ function shareSheet(c) {
 let colonyTab = "overview", lastColonyId = null;
 screen("colony", {
   tab: "yard", title: p => col(p.id)?.name || "Colony",
+  fab: p => col(p.id)?.status === "active" ? { label: "📷 Start a visit", onclick: () => nav("visitStart", { id: p.id }) } : null,
   render(p) {
     const c = col(p.id); if (!c) return `<p>Not found.</p>`;
     if (lastColonyId !== c.id) { colonyTab = "overview"; lastColonyId = c.id; }

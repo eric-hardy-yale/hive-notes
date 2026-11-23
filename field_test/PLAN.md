@@ -1,12 +1,12 @@
 # Field test plan — live hives, morning of 23 Nov 2026
 
 Goal: one real beekeeper uses Hive notes on real colonies, and we measure it against how they do it today.
-Takes about 45 minutes at the yard. Weather: check the app's "should I open it?" for the morning. If it's too cold
+Takes about 45 minutes at the apiary. Weather: check the app's "should I open it?" for the morning. If it's too cold
 to pull frames, do the **heft + talk-through** version (steps 3–5 still work, and that's a real winter visit).
 
 ## Before you leave (5 min)
 - [ ] Phone: open the live app, **More → AI helper** → enter the access code → **Save & test** says "connected".
-- [ ] Add the yard (stand in it and tap 📍, or search the town) and add their hives/nucs with their names.
+- [ ] Add the apiary (stand in it and tap 📍, or search the town) and add their hives/nucs with their names.
 - [ ] Phone fully charged; screen recording on (iPhone: Control Center → ⏺; Android: quick settings → Screen record).
 - [ ] Second phone or camera for the video. Stopwatch (any phone clock).
 - [ ] **Ask the keeper first:** OK to video, OK to quote them without their name in a class report? If no faces, film hands and frames only.
@@ -20,7 +20,7 @@ to pull frames, do the **heft + talk-through** version (steps 3–5 still work, 
    Stopwatch from opening the hive to tapping **Close up**. → minutes.
 3. **Frame Reader accuracy.** For 6–10 frames, the keeper says for each AI suggestion: right / wrong / missed.
    (Brood? Eggs? Honey and how full? Queen? Queen cells?) Tally on the sheet below.
-4. **Talk through the yard.** On the yard screen: **🎙 Talk through the yard**. They speak naturally about every
+4. **Talk through the apiary.** On the apiary screen: **🎙 Talk through the apiary**. They speak naturally about every
    colony (gloves on is fine; Eric can hold the phone). **Turn into records**. Keeper checks each item: right / wrong.
 5. **Plan with AI.** For the colony that worries them most: **🤖 Plan with AI**. Ask the keeper:
    "Is this what you'd do? Anything wrong or missing? Would you trust it next time?" Write down their words.

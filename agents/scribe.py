@@ -1,6 +1,6 @@
 """Scribe agent: turns what the keeper said at the hive (dictated or typed) into visit records.
 
-One note can cover a whole yard ("Hive 1 calm, saw eggs... the nuc is light"). The Scribe splits it
+One note can cover a whole apiary ("Hive 1 calm, saw eggs... the nuc is light"). The Scribe splits it
 by colony, fills only what was said, and quotes the words behind every field. Tools let it look up the
 keeper's colony list and each colony's last visit (to resolve "same as last time", "the new nuc").
 It cannot save anything: the keeper reviews and confirms in the app.
@@ -65,7 +65,7 @@ SCHEMA = {"type": "object", "additionalProperties": False, "required": ["visits"
                          "flags": {"type": "array", "items": {"type": "string"}}}}
 
 TOOLS = [
-    {"type": "function", "function": {"name": "list_colonies", "description": "The keeper's active colonies: id, name, type (hive or nuc), yard and box setup.",
+    {"type": "function", "function": {"name": "list_colonies", "description": "The keeper's active colonies: id, name, type (hive or nuc), apiary and box setup.",
                                       "parameters": {"type": "object", "properties": {}, "required": [], "additionalProperties": False}, "strict": True}},
     {"type": "function", "function": {"name": "get_last_visit", "description": "The most recent saved visit for one colony.",
                                       "parameters": {"type": "object", "properties": {"colony_id": {"type": "string"}}, "required": ["colony_id"], "additionalProperties": False}, "strict": True}},

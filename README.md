@@ -27,9 +27,9 @@ Then open **http://localhost:8040** in a browser. On a computer it shows inside 
 **Keys:** the server reads `.env` from **this folder first, then the folder above it**, so a `submissions/.env` next to the cloned repo works as-is. It uses `PORTKEY_API_KEY` (model `gpt-6-luna`), or `OPENAI_API_KEY` if there is no Portkey key. See `.env.example`. The server prints which `.env` it found and whether AI is on. Without a key the app still runs, but the AI buttons explain that the key is missing.
 
 ### A 2-minute tour
-1. **Add your first yard** → search a town (e.g. “Hartford”) → Save. A live 10-day forecast loads.
+1. **Add your first apiary** → search a town (e.g. “Hartford”) → Save. A live 10-day forecast loads.
 2. Add a hive (defaults are fine).
-3. On the yard screen, tap **🎙 Talk through the yard** and paste:
+3. On the apiary screen, tap **🎙 Talk through the apiary** and paste:
    `Hive 1 calm, saw the queen, eggs on about five frames, top box heavy. Put the mouse guard on.`
    → **Turn into records**. The **Scribe** agent shows every item with the exact words it came from → **Save**.
 4. Open **Hive 1** → **🤖 Plan with AI**. The **Advisor** agent calls the live forecast and label tools, and the **Checker** verifies its answer before you see it.
@@ -50,7 +50,7 @@ Then open **http://localhost:8040** in a browser. On a computer it shows inside 
 | Path | What |
 |---|---|
 | `server.py` | Small Python server: serves the app (`web/`) and the AI endpoints `/api/scribe`, `/api/frame`, `/api/advise`, `/api/ask`. |
-| `agents/scribe.py` | **Scribe**: turns a dictated or typed note (one hive or a whole yard) into visit records. Tools: `list_colonies`, `get_last_visit`. |
+| `agents/scribe.py` | **Scribe**: turns a dictated or typed note (one hive or a whole apiary) into visit records. Tools: `list_colonies`, `get_last_visit`. |
 | `agents/frame_reader.py` | **Frame Reader**: reads a frame photo and suggests what's on it (brood, eggs, honey, queen, cells, mites). The keeper confirms. |
 | `agents/advisor.py` | **Advisor**: plan for one colony, or an answer to a question. Tools: `get_forecast` (live Open-Meteo), `get_history`, `get_treatment_label`. |
 | `agents/checks.py` | **Checker** and guards (code, no model): quote-grounding, number-grounding, no doses, allowed products, high-risk findings can't be dropped, injection flags. |

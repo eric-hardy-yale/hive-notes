@@ -55,7 +55,7 @@ SCHEMA = {
 }
 
 TOOLS = [
-    {"type": "function", "function": {"name": "get_forecast", "description": "Live daily forecast for the colony's yard (°F, mph, rain chance, first hard freeze).",
+    {"type": "function", "function": {"name": "get_forecast", "description": "Live daily forecast for the colony's apiary (°F, mph, rain chance, first hard freeze).",
                                       "parameters": {"type": "object", "properties": {"days": {"type": "integer", "description": "1-10"}}, "required": ["days"], "additionalProperties": False}, "strict": True}},
     {"type": "function", "function": {"name": "get_history", "description": "Older saved visits, mite counts, feedings and treatments for this colony.",
                                       "parameters": {"type": "object", "properties": {"limit": {"type": "integer"}}, "required": ["limit"], "additionalProperties": False}, "strict": True}},
@@ -122,7 +122,7 @@ def run(payload: dict, question: str | None = None, cache: bool = True) -> dict:
 
     def get_forecast(days: int):
         if yard.get("lat") is None:
-            return {"error": "this yard has no location set, so there is no forecast"}
+            return {"error": "this apiary has no location set, so there is no forecast"}
         r = fetch_forecast(yard["lat"], yard["lon"], days)
         tool_text_parts.append(json.dumps(r))
         return r

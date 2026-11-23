@@ -82,9 +82,12 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         path = self.path.split("?", 1)[0]
         if path == "/api/health":
+            sent = self.headers.get("X-Access-Code")
             return self._json(200, {
                 "ok": True, "model": llm.MODEL, "ai": bool(llm.key_source()), "key": llm.key_source(),
                 "vision": VISION, "access_code_required": bool(ACCESS_CODE),
+                # Lets "Save & test" on the phone say whether the code is right, without spending a model call.
+                "code_ok": None if sent is None else (not ACCESS_CODE or hmac.compare_digest(sent, ACCESS_CODE)),
                 "budget": {"spent_today_usd": round(llm.spent_today(), 5), "daily_cap_usd": llm.DAILY_BUDGET_USD},
                 "rate_per_hour": RATE_PER_HOUR,
             })

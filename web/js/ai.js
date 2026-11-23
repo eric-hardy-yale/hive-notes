@@ -7,11 +7,12 @@ let aiStatus = null;   // last /api/health answer, or {ok:false, error}
 // On the GitHub Pages copy there's no server behind the site, so it talks to the public AI server.
 const DEFAULT_AI_SERVER = "https://hive-notes-bzhj.onrender.com";
 function aiBase() { return (db.settings.aiUrl || (location.hostname.endsWith("github.io") ? DEFAULT_AI_SERVER : "")).replace(/\/+$/, ""); }
-async function aiHealth(force = false) {
+async function aiHealth(force = false, waitMs = 8000) {
   if (aiStatus && !force && Date.now() - aiStatus.at < 60000) return aiStatus;
   try {
-    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 8000);
-    const r = await fetch(aiBase() + "/api/health", { signal: ctl.signal, cache: "no-store" }); clearTimeout(t);
+    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), waitMs);
+    const headers = db.settings.aiCode ? { "X-Access-Code": db.settings.aiCode } : {};
+    const r = await fetch(aiBase() + "/api/health", { signal: ctl.signal, cache: "no-store", headers }); clearTimeout(t);
     const j = await r.json(); aiStatus = { ...j, at: Date.now() };
   } catch (e) { aiStatus = { ok: false, ai: false, error: navigator.onLine ? "AI server not reachable" : "No signal", at: Date.now() }; }
   return aiStatus;
@@ -47,7 +48,7 @@ function usageLine(u, extra = "") {
 }
 const aiThinking = msg => `<div class="aithink"><span class="spin"></span>${esc(msg)}</div>`;
 
-/* ---------- what the phone sends: a compact record, no location beyond the rounded yard point ---------- */
+/* ---------- what the phone sends: a compact record, no location beyond the rounded apiary point ---------- */
 function colonyRecord(c) {
   const vs = visitsOf(c.id), last = vs.slice(-3);
   const brief = v => ({ date: v.date, type: v.type, temp_f: v.temp, queen: v.queen || null, eggs: v.eggs ?? null, brood_frames: v.broodFrames ?? null, stores_lb: v.storesLb ?? null,
@@ -151,12 +152,12 @@ async function scribeForVisit(c, v, onApply) {
   } catch (e) { const b = document.querySelector("#aiBody"); if (b) b.innerHTML = `<div class="note warn">${esc(e.message)}</div>`; }
 }
 
-// From the yard screen: talk through the whole yard, get one quick visit per colony
+// From the apiary screen: talk through the whole apiary, get one quick visit per colony
 function yardTalkSheet() {
   const y = yardOf(db.settings.currentYard), cs = activeIn(y.id);
   if (!cs.length) { toast("Add a colony first"); return; }
-  sheet(`<h3>🎙 Talk through the yard</h3>
-    <div class="small">Walk the yard and say what you see, hive by hive — like you'd tell a friend. The Scribe splits it into one record per colony and shows the words behind every item before anything is saved.</div>
+  sheet(`<h3>🎙 Talk through the apiary</h3>
+    <div class="small">Walk the apiary and say what you see, hive by hive — like you'd tell a friend. The Scribe splits it into one record per colony and shows the words behind every item before anything is saved.</div>
     <textarea id="yt" rows="6" placeholder="e.g. Hive 1 calm, saw the queen, eggs on four frames, heavy. Nuc 1 light, fed half a gallon…">${esc(db.drafts.yardTalk || "")}</textarea>
     ${speechOK() ? `<button class="btn sm ghost" id="mic">🎙 Talk</button>` : `<div class="small">Tip: tap 🎤 on the keyboard to talk.</div>`}
     <button class="btn" id="go">Turn into records</button><div id="aiBody"></div><button class="btn ghost" data-close>Close</button>`, s => {
@@ -218,22 +219,47 @@ async function frameReadInto(d, rerenderFn) {
 }
 
 /* ---------- More: settings + usage ---------- */
+// One plain-language verdict for a /api/health answer, used by the card and by Save & test.
+function aiVerdict(st) {
+  if (!aiOn()) return { ok: false, icon: "⏸", text: "Turned off. The app works on its own rules." };
+  if (!st) return { ok: false, icon: "…", text: "Checking…" };
+  if (!st.ok) return { ok: false, icon: "❌", text: navigator.onLine ? "Couldn't reach the AI server. If it has been idle, it may still be waking up: tap Save & test again in a minute." : "No signal. The AI helper needs a connection; everything else still works." };
+  if (!st.ai) return { ok: false, icon: "⚠️", text: "The server is up but has no AI key set." };
+  if (st.access_code_required && !db.settings.aiCode) return { ok: false, icon: "🔑", text: "This server needs an access code. Paste it above, then tap Save & test." };
+  if (st.code_ok === false) return { ok: false, icon: "❌", text: "That access code isn't right. Copy it again and paste it in, with nothing before or after it." };
+  return { ok: true, icon: "✅", text: `Connected · ${esc(st.model)} · today $${(st.budget?.spent_today_usd || 0).toFixed(4)} of $${(st.budget?.daily_cap_usd || 0).toFixed(2)} cap` };
+}
 function aiSettingsHtml() {
-  const s = db.settings, st = aiStatus;
-  const state = !aiOn() ? "Off" : !st ? "Checking…" : st.ok && st.ai ? `On · ${esc(st.model)} · today $${(st.budget?.spent_today_usd || 0).toFixed(4)} of $${(st.budget?.daily_cap_usd || 0).toFixed(2)} cap` : st.ok ? "Server reached, but it has no API key" : esc(st.error || "Not reachable");
+  const s = db.settings, vd = aiVerdict(aiStatus);
   return `<h2>AI helper</h2>
-    <div class="card"><div class="between"><b>Status</b><span class="small" id="aiState">${state}</span></div>
+    <div class="card">
       <div class="toggle${aiOn() ? " on" : ""}" id="aiToggle"><span class="sw"></span>Use the AI helper (Scribe, Frame Reader, Advisor)</div>
-      <div class="q"><div class="lbl">AI server</div><input id="aiUrl" value="${esc(s.aiUrl || "")}" placeholder="Blank = this site's own server"/></div>
-      <div class="q"><div class="lbl">Access code</div><input id="aiCode" value="${esc(s.aiCode || "")}" placeholder="Only if the server asks for one" autocomplete="off"/></div>
-      <button class="btn sm ghost" id="aiSave">Save & test</button>
-      <div class="small" style="margin-top:6px">When you use it, the app sends that colony's records (no names of people, location rounded to ~1 km) or your note or photo to the AI service. Nothing is sent otherwise.</div></div>
+      <div class="q"><div class="lbl">Access code</div><input id="aiCode" value="${esc(s.aiCode || "")}" placeholder="Paste the code you were given" autocomplete="off" autocapitalize="off" spellcheck="false"/></div>
+      <details class="adv"${s.aiUrl ? " open" : ""}><summary>Advanced: AI server address</summary>
+        <div class="q"><input id="aiUrl" value="${esc(s.aiUrl || "")}" placeholder="Leave blank to use the usual server" autocapitalize="off" spellcheck="false"/></div></details>
+      <button class="btn sm" id="aiSave">Save & test</button>
+      <div class="aitest ${vd.ok ? "good" : aiStatus ? "bad" : ""}" id="aiTest" role="status" aria-live="polite">${vd.icon} ${vd.text}${s.aiTestedAt && aiStatus ? `<div class="small">Last tested ${new Date(s.aiTestedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}</div>` : ""}</div>
+      <div class="small" style="margin-top:8px">When you use it, the app sends that colony's records (no names of people, location rounded to about 1 km), or your note or photo, to the AI service. Nothing is sent otherwise.</div></div>
     <button class="btn ghost" data-nav="aiUsage">📊 AI usage & cost (${(db.aiLog || []).filter(x => x.ok).length} calls)</button>`;
 }
 function aiSettingsMount(v) {
   v.querySelector("#aiToggle").onclick = () => { db.settings.aiEnabled = !aiOn(); saveDb(); rerender(); };
-  v.querySelector("#aiSave").onclick = async () => { db.settings.aiUrl = v.querySelector("#aiUrl").value.trim(); db.settings.aiCode = v.querySelector("#aiCode").value.trim(); saveDb(); const st = await aiHealth(true); toast(st.ok && st.ai ? "AI helper connected" : st.ok ? "Server reached, but it has no API key" : "Couldn't reach the AI server"); rerender(); };
-  if (!aiStatus) aiHealth().then(() => { const el = v.querySelector("#aiState"); if (el) rerender(); });
+  v.querySelector("#aiSave").onclick = async e => {
+    const btn = e.currentTarget, out = v.querySelector("#aiTest");
+    const clean = x => x.trim().replace(/^["'“”]+|["'“”]+$/g, "").trim();
+    db.settings.aiUrl = clean(v.querySelector("#aiUrl").value); db.settings.aiCode = clean(v.querySelector("#aiCode").value); db.settings.aiEnabled = true; saveDb();
+    btn.disabled = true; btn.textContent = "Testing…";
+    out.className = "aitest"; out.innerHTML = aiThinking("Contacting the AI server…");
+    const slow = setTimeout(() => { out.innerHTML = aiThinking("The free server is waking up. This can take up to a minute…"); }, 5000);
+    const st = await aiHealth(true, 75000);
+    clearTimeout(slow);
+    db.settings.aiTestedAt = Date.now(); saveDb();
+    const vd = aiVerdict(st);
+    toast(vd.ok ? "✅ AI helper connected" : vd.icon + " Not connected yet");
+    rerender();
+    const el = document.getElementById("aiTest"); if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
+  };
+  if (!aiStatus) aiHealth().then(() => { if (document.getElementById("aiTest")) rerender(); });
 }
 screen("aiUsage", {
   tab: "more", title: "AI usage",

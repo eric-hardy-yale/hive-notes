@@ -24,7 +24,7 @@ screen("plan", {
       <div class="tabs2">${MONTHS.map((x, i) => `<span data-month="${i}" class="${i === m ? "on" : ""}">${x}</span>`).join("")}</div>
       <div class="card"><b>${esc(se.name)}</b>${se.tasks.map((t, i) => { const k = `${se.name}-${i}`; return `<div class="todo ${done[k] ? "done" : ""}"><span class="box ${done[k] ? "on" : ""}" data-ck="${esc(k)}"></span><b style="font-weight:500">${esc(t)}</b></div>`; }).join("")}
         <div class="small" style="margin-top:6px">🌼 ${esc(flowFor(m).text)}</div></div>
-      <div class="small" style="margin-top:4px">${esc(db.settings.region)}: ${esc(region().note)}</div>${nb("Seasons shift by region and by year. The app adjusts dates using your yards' forecasts — e.g. first inspection waits for a 55–60°F still day.")}
+      <div class="small" style="margin-top:4px">${esc(db.settings.region)}: ${esc(region().note)}</div>${nb("Seasons shift by region and by year. The app adjusts dates using your apiaries' forecasts — e.g. first inspection waits for a 55–60°F still day.")}
       <h2>Forage through the year</h2>
       <div class="card">${FLOWS.map(f => `<div class="between" style="padding:4px 0"><span class="small" style="width:110px">${f.m.length > 3 ? "Oct–Mar" : f.m.map(i => MONTHS[i]).join("–")}</span><span class="grow" style="font-size:14px;${f.m.includes(monthOf(TODAY)) ? "font-weight:700" : ""}">${esc(f.text)}</span></div>`).join("")}
         ${db.yards.map(y => y.forage ? `<div class="small" style="margin-top:6px">${esc(y.name)}: ${esc(y.forage)}</div>` : "").join("")}</div>
