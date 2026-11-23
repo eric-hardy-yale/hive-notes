@@ -10,8 +10,10 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.7"
+      - key: OPENAI_API_KEY
+        sync: false          # paste your key in Render's dashboard (leave blank if you use PORTKEY_API_KEY); it never goes in the repo
       - key: PORTKEY_API_KEY
-        sync: false          # you paste the course key in Render's dashboard; it never goes in the repo
+        sync: false          # course key via Portkey; leave blank if you use OPENAI_API_KEY
       - key: APP_ACCESS_CODE
         generateValue: true  # Render makes a random code; enter it once in the phone app (More → AI helper)
       - key: DAILY_BUDGET_USD

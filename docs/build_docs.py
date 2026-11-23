@@ -26,7 +26,7 @@ AUTHOR = "Eric Hardy"
 REPO = "https://github.com/eric-hardy-yale/hive-notes"
 LIVE_AI = "https://hive-notes.onrender.com"
 LIVE_PAGES = "https://eric-hardy-yale.github.io/hive-notes/"
-PRICES = {"input": 0.10, "cached": 0.01, "output": 0.50}
+PRICES = {"input": 0.10, "cached": 0.01, "cache_write": 0.125, "output": 0.50}
 
 
 def load(p: Path):
@@ -40,6 +40,8 @@ LIVE = load(DATA / "live_results.json")
 GUARDS = load(DATA / "server_guards.json")
 FIELD = load(ROOT / "field_test" / "results.json")
 FIELD_USAGE = load(DATA / "usage_from_field.json")
+KEY_NOTE = ("The measured runs in this report used my own OpenAI key, because my course Portkey key stopped working the weekend the project was due (Portkey returned “Invalid API Key”). The teaching staff's .env with PORTKEY_API_KEY works with the same code."
+            if (LIVE or {}).get("key") == "OPENAI_API_KEY" else "")
 e = html.escape
 
 
@@ -62,14 +64,15 @@ def money(x: float, digits: int = 4) -> str:
 
 
 def cost(u: dict) -> float:
-    return (max(u["input"] - u["cached"], 0) * PRICES["input"] + u["cached"] * PRICES["cached"] + u["output"] * PRICES["output"]) / 1e6
+    w = u.get("cache_write", 0)
+    return (max(u["input"] - u["cached"] - w, 0) * PRICES["input"] + u["cached"] * PRICES["cached"] + w * PRICES["cache_write"] + u["output"] * PRICES["output"]) / 1e6
 
 
 def avg_usage(rows: list[dict]) -> dict | None:
     if not rows:
         return None
     n = len(rows)
-    a = {k: sum(r["usage"][k] for r in rows) / n for k in ("input", "cached", "output")}
+    a = {k: sum(r["usage"].get(k, 0) for r in rows) / n for k in ("input", "cached", "cache_write", "output")}
     a["cost"] = sum(r["usage"].get("cost_usd", cost(r["usage"])) for r in rows) / n
     a["n"] = n
     return a
@@ -151,7 +154,7 @@ def section_tokenomics() -> str:
     if FIELD_USAGE and FIELD_USAGE.get("by_agent", {}).get("frame"):
         fr = FIELD_USAGE["by_agent"]["frame"]
         rows.append(("Frame Reader — one photo (field test)", fr))
-    t = "".join(f"<tr><td>{n}</td><td class=n>{a['n']}</td><td class=n>{a['input']:,.0f}</td><td class=n>{a['cached']:,.0f}</td><td class=n>{a['output']:,.0f}</td><td class=n>{money(a['cost'], 5)}</td></tr>" for n, a in rows if a)
+    t = "".join(f"<tr><td>{n}</td><td class=n>{a['n']}</td><td class=n>{a['input']:,.0f}</td><td class=n>{a['cached']:,.0f}</td><td class=n>{a.get('cache_write', 0):,.0f}</td><td class=n>{a['output']:,.0f}</td><td class=n>{money(a['cost'], 5)}</td></tr>" for n, a in rows if a)
     # monthly model for a typical hobbyist (4 colonies) in season
     per = {"scribe": sf["cost"], "advisor": adv["cost"], "frame": rows[3][1]["cost"] if len(rows) > 3 else None}
     plan = [("Talk-through notes (Scribe)", 4, per["scribe"]), ("Plans and questions (Advisor)", 16, per["advisor"])]
@@ -166,8 +169,8 @@ def section_tokenomics() -> str:
     inv_f, inv_l = LIVE["scribe_full"]["totals"]["invented"], LIVE["scribe_lean"]["totals"]["invented"]
     return f"""
 <p>Every number here is from the API's own usage report on real calls to <b>gpt-6-luna</b> ({e(LIVE['ran_at'])}, {sf['n']} labelled notes, {adv['n']} plans, {len(att)} attacks), priced at the course rates:
-$0.10 per million input tokens, $0.01 per million cached input tokens, $0.50 per million output tokens. The app also shows these counts on the phone (More → AI usage), per call.</p>
-<table><tr><th>One run</th><th class=n>runs</th><th class=n>input tokens</th><th class=n>of which cached</th><th class=n>output</th><th class=n>cost</th></tr>{t}</table>
+$0.10 per million input tokens, $0.01 per million cached input tokens, $0.125 per million tokens written to the cache, $0.50 per million output tokens. The app also shows these counts on the phone (More → AI usage), per call.</p>
+<table><tr><th>One run</th><th class=n>runs</th><th class=n>input tokens</th><th class=n>cached (read)</th><th class=n>cache write</th><th class=n>output</th><th class=n>avg cost</th></tr>{t}</table>
 {img('11_ai_usage', 'The AI usage screen on the phone: every call with its input, cached and output tokens and its cost.')}
 <h3>Per user per month</h3>
 <p>A typical hobbyist has fewer than 25 colonies; I modelled 4 colonies visited every two weeks in season. That is about this much AI work a month:</p>
@@ -190,7 +193,25 @@ The model is so cheap that hosting, not tokens, is most of the cost.</p>
 <table><tr><th>Scribe prompt</th><th class=n>avg input tokens</th><th class=n>avg cost</th><th class=n>fields right</th><th class=n>invented fields</th></tr>
 <tr><td>Full (with cached reference)</td><td class=n>{sf['input']:,.0f}</td><td class=n>{money(sf['cost'], 5)}</td><td class=n>{acc_f:.0%}</td><td class=n>{inv_f}</td></tr>
 <tr><td>Lean (no reference)</td><td class=n>{sl['input']:,.0f}</td><td class=n>{money(sl['cost'], 5)}</td><td class=n>{acc_l:.0%}</td><td class=n>{inv_l}</td></tr></table>
-<p>{"The lean prompt scored lower, so I kept the full prompt. Caching makes the extra tokens cheap." if acc_l < acc_f else "The lean prompt scored as well or better on this small test, but I kept the full prompt. Caching makes it nearly free, and the reference carries the safety rules, such as never giving doses." }</p>"""
+<p>{lean_verdict(sf, sl, acc_f, acc_l)}</p>
+<p class=muted>Run-to-run variation is real. In an earlier full run (before two prompt fixes), the full prompt scored 36 of 37 and the lean prompt 35 of 37. Twelve notes is a small test, and the field test adds real ones.</p>"""
+
+
+def lean_verdict(sf, sl, acc_f, acc_l) -> str:
+    cheaper = sl["cost"] < sf["cost"]
+    parts = []
+    if not cheaper:
+        parts.append(f"The surprise: the lean prompt was <b>not</b> cheaper. It cost {money(sl['cost'], 5)} per note against {money(sf['cost'], 5)} for the full prompt, "
+                     f"{(sl['cost'] / sf['cost'] - 1):.0%} more. The full prompt's long, fixed beginning stays in OpenAI's prompt cache (on average {sf['cached']:,.0f} of {sf['input']:,.0f} input tokens were read from cache at a tenth of the price). "
+                     f"The lean prompt is so close to the 1,024-token caching minimum that it got re-written to the cache on almost every call ({sl['cache_write']:,.0f} cache-write tokens per note, which cost more than plain input).")
+    if acc_l < acc_f:
+        parts.append(f"It was also less accurate ({acc_l:.0%} vs {acc_f:.0%}).")
+    elif acc_l == acc_f:
+        parts.append(f"Accuracy was the same ({acc_f:.0%}).")
+    else:
+        parts.append(f"It scored slightly higher ({acc_l:.0%} vs {acc_f:.0%}) on this small set.")
+    parts.append("So the cut would have hurt: higher cost, and it drops the reference that carries rules like never giving doses. I kept the full prompt.")
+    return " ".join(parts)
 
 
 def section_trace() -> str:
@@ -241,7 +262,19 @@ def section_safety() -> str:
 <table><tr><th>Guard</th><th class=n>HTTP</th><th>Result</th></tr>{grows or '<tr><td colspan=3>not run</td></tr>'}</table>
 <p><b>Code guards</b> (tests/test_guards.py, offline): <span class="{'ok' if passed == ran else 'bad'}">{passed}/{ran} tests pass</span>. These include an invented “stores: light” being dropped, an invented weight being rejected, “4 strips of Apivar” being blocked, an unlisted product being blocked, a high-risk finding being left out, and the budget cap stopping a call.</p>
 <p><b>Attacks on the real model:</b></p>{att}
-<div class="row">{img('12_injection_blocked', 'A note that tries to give the AI orders: flagged, ignored, and only beekeeping facts kept.')}{img('13_ask_jailbreak', 'A jailbreak question: the Advisor stays on the colony.')}</div>"""
+<div class="row">{img('12_injection_blocked', 'A note that tries to give the AI orders: flagged, ignored, and only beekeeping facts kept.')}{img('13_ask_jailbreak', 'A jailbreak question: the Advisor stays on the colony.')}</div>
+<h3>Malfunctions found in live testing, and what I built because of them</h3>
+<table><tr><th>What went wrong (real runs, Nov 22)</th><th>Caught by</th><th>Fix</th></tr>
+<tr><td>In the first full evaluation, the Advisor returned a <b>blank answer</b> (every field empty) after calling the forecast tool, on 3 of 3 test colonies.</td>
+<td>The Checker refused all three (“leaves out a high-risk finding”), retried once, then showed the app's rules plan. The keeper never saw a blank or wrong plan.</td>
+<td>The task now comes after the record, with each field spelled out, and a new “blank answer” rule. Rerun: 3 of 3 plans passed on the first try.</td></tr>
+<tr><td>The Scribe filed “<b>no eggs</b>” as queen = “eggs” (screenshot below). The quote was real, so the quote check passed it.</td>
+<td>Me, reviewing a test run. This is why the keeper confirms before saving.</td>
+<td>A negation guard in code: a positive value (“seen”, “eggs”) can't rest on a quote that says no, not, or didn't. There's a unit test for it, and the prompt now spells out that “no eggs” means not eggs.</td></tr>
+<tr><td>The Checker rejected a correct plan for using “0.2” (lb per day) because the record had “−0.2”.</td>
+<td>The Checker itself (a false alarm).</td>
+<td>Numbers are now compared without their sign.</td></tr></table>
+{img('12_injection_before_negation_fix', 'Before the fix: the injection was ignored, but “no eggs” was filed as “eggs.” After the fix, the same note gives “neither.”', '260px')}"""
 
 
 def section_impact() -> str:
@@ -278,7 +311,6 @@ Across 10,000 users, that's about $900,000 a year in colonies not lost. This is 
 
 
 def report() -> str:
-    lean_note = ""
     return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Hive notes — final report</title><style>{CSS}</style></head><body><main>
 <h1>Hive notes</h1>
@@ -321,7 +353,8 @@ The work costs too: an inspection is done with gloves on, in a veil, with bees i
 <tr><td><b>Advisor</b></td><td>Plan for one colony (what to expect, what to do by when, when to come back) or answer a question about it.</td><td><code>get_forecast</code> (live Open-Meteo), <code>get_history</code>, <code>get_treatment_label</code></td><td>Strict JSON, then the Checker.</td></tr>
 <tr><td><b>Checker</b> (code)</td><td>Verify the Advisor: numbers grounded, no doses, allowed products only, high-risk findings kept, foulbrood → call the state apiarist.</td><td>—</td><td>Pass, or retry once, or fall back to the rules plan.</td></tr></table>
 <p><b>How they're organized.</b> It's a pipeline, not a free-for-all. The keeper's tap starts one agent, which hands its result to code checks, which hand it to the keeper. The Scribe's records feed the rules engine and the Advisor once saved. I kept the agents apart on purpose. The one reading untrusted text (the Scribe) has no say in advice, and the one giving advice (the Advisor) sees structured records, not raw notes as instructions.</p>
-<p><b>Model: gpt-6-luna</b> through Portkey (the course key; the only model allowed on it). It handles tools and strict JSON schemas, which every agent here depends on, and it costs $0.10 per million input tokens. With caching and short outputs, a run costs a fraction of a cent, which matters for a free app aimed at hobbyists.</p>
+<p><b>Model: gpt-6-luna.</b> It handles tools and strict JSON schemas, which every agent here depends on, and it costs $0.10 per million input tokens. With caching and short outputs, a run costs a fraction of a cent, which matters for a free app aimed at hobbyists.
+The code takes either key: <code>PORTKEY_API_KEY</code> (the course key, through Portkey) or <code>OPENAI_API_KEY</code> (straight to OpenAI), with the same model and prices. {KEY_NOTE}</p>
 <h3>One real run, step by step</h3>{section_trace()}
 
 <h2>4. Tokenomics</h2>{section_tokenomics()}

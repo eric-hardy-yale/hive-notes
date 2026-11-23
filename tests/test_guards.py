@@ -48,6 +48,12 @@ class ScribeGrounding(unittest.TestCase):
         self.assertIsNone(v["mite_count"])
         self.assertTrue(any("quote not found" in d for d in out["dropped"]))
 
+    def test_negative_quote_cannot_fill_a_positive_value(self):
+        # Real failure seen in a live run: "no eggs" filed as queen = "eggs".
+        out = checks.ground_scribe(self.visit(queen="eggs", evidence=[{"field": "queen", "quote": "no eggs"}]), "Hive 1 felt light, no eggs.", {"h1"})
+        self.assertEqual(out["visits"][0]["queen"], "not_checked")
+        self.assertTrue(any("opposite" in d for d in out["dropped"]))
+
     def test_drops_unknown_colony(self):
         out = checks.ground_scribe(self.visit(colony_id="h99", heard_as="Hive 9"), self.NOTE, {"h1"})
         self.assertEqual(out["visits"], [])
@@ -72,6 +78,9 @@ class AdviceChecker(unittest.TestCase):
         a = self.advice("Stores are 38 lb. Feed syrup now.")
         self.assertTrue(any("numbers not found" in p for p in checks.check_advice(a, self.TOOLS, self.RISK)))
 
+    def test_blank_answer_fails(self):
+        self.assertEqual(checks.check_advice(self.advice(""), self.TOOLS, []), ["the answer was blank"])
+
     def test_dose_fails(self):
         a = self.advice("Feed syrup, then put in 4 strips of Apivar.")
         self.assertTrue(any("dose" in p for p in checks.check_advice(a, self.TOOLS, [])))
@@ -94,6 +103,8 @@ class Budget(unittest.TestCase):
         # 3,000 input of which 2,000 cached, 400 output at luna prices
         c = llm.cost_of({"input": 3000, "cached": 2000, "output": 400})
         self.assertAlmostEqual(c, (1000 * 0.10 + 2000 * 0.01 + 400 * 0.50) / 1e6)
+        w = llm.cost_of({"input": 3000, "cached": 0, "cache_write": 2000, "output": 0})
+        self.assertAlmostEqual(w, (1000 * 0.10 + 2000 * 0.125) / 1e6)
 
     def test_cap_blocks_calls(self):
         old_log, old_cap = llm.USAGE_LOG, llm.DAILY_BUDGET_USD

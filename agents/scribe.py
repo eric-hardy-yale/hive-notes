@@ -28,8 +28,8 @@ Rules:
   space "not_mentioned", pests [], did [], mite_count null, mite_sample null, mite_method "none".
 - For every field you fill, add an evidence item with the field name and the exact words from the note
   (copy them character for character, 2-12 words). No quote, no field.
-- queen: "seen" if they saw her; "eggs" if eggs or young larvae but not her; "neither" if they looked and found
-  neither. brood_frames: number of frames with brood if they said it. stores: heavy / medium / light from what they
+- queen: "seen" if they saw her; "eggs" if they saw eggs or young larvae but not her; "neither" if they say there
+  were no eggs and no queen ("no eggs" means NOT eggs). brood_frames: number of frames with brood if they said it. stores: heavy / medium / light from what they
   said about honey or the weight.
 - note: one short plain sentence with anything useful that didn't fit a field. Never invent.
 

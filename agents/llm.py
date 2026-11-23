@@ -20,7 +20,7 @@ USAGE_LOG = LOG_DIR / "usage.jsonl"
 MODEL = "gpt-6-luna"  # the only model allowed on the course key
 PORTKEY_BASE_URL = "https://api.portkey.ai/v1"
 # OpenAI standard prices per 1M tokens for gpt-6-luna (MGT 409 Lecture 11)
-PRICES = {"input": 0.10, "cached_input": 0.01, "output": 0.50}
+PRICES = {"input": 0.10, "cached_input": 0.01, "cache_write": 0.125, "output": 0.50}
 MAX_TOOL_ROUNDS = 4  # an agent gets at most this many rounds of tool calls, then must answer
 
 
@@ -129,8 +129,10 @@ def check_budget() -> None:
 
 
 def cost_of(u: dict) -> float:
-    uncached = max(u["input"] - u["cached"], 0)
-    return (uncached * PRICES["input"] + u["cached"] * PRICES["cached_input"] + u["output"] * PRICES["output"]) / 1e6
+    # input_tokens already include cache reads and cache writes
+    w = u.get("cache_write", 0)
+    uncached = max(u["input"] - u["cached"] - w, 0)
+    return (uncached * PRICES["input"] + u["cached"] * PRICES["cached_input"] + w * PRICES["cache_write"] + u["output"] * PRICES["output"]) / 1e6
 
 
 def record(agent: str, u: dict, extra: dict | None = None) -> dict:
@@ -148,15 +150,16 @@ def record(agent: str, u: dict, extra: dict | None = None) -> dict:
 
 def usage_of(resp) -> dict:
     u = resp.usage
-    cached = 0
+    cached = write = 0
     details = getattr(u, "prompt_tokens_details", None)
     if details is not None:
         cached = getattr(details, "cached_tokens", 0) or 0
-    return {"input": u.prompt_tokens or 0, "cached": cached, "output": u.completion_tokens or 0}
+        write = getattr(details, "cache_write_tokens", 0) or (getattr(details, "model_extra", None) or {}).get("cache_write_tokens", 0) or 0
+    return {"input": u.prompt_tokens or 0, "cached": cached, "cache_write": write, "output": u.completion_tokens or 0}
 
 
 def add_usage(a: dict, b: dict) -> dict:
-    return {k: a.get(k, 0) + b.get(k, 0) for k in ("input", "cached", "output")}
+    return {k: a.get(k, 0) + b.get(k, 0) for k in ("input", "cached", "cache_write", "output")}
 
 
 # ---------------- one agent run ----------------
@@ -169,7 +172,7 @@ def run_agent(agent: str, system: str, user_content, *, schema: dict, tools: lis
     check_budget()
     c = client()
     messages = [{"role": "system", "content": system}, {"role": "user", "content": user_content}]
-    total = {"input": 0, "cached": 0, "output": 0}
+    total = {"input": 0, "cached": 0, "cache_write": 0, "output": 0}
     trace = []
     kw = {
         "model": MODEL,
@@ -180,6 +183,8 @@ def run_agent(agent: str, system: str, user_content, *, schema: dict, tools: lis
         kw["prompt_cache_key"] = f"hive-notes-{agent}"
     if tools:
         kw["tools"] = tools
+        # gpt-6-luna on chat completions only allows function tools with reasoning turned off
+        kw["reasoning_effort"] = "none"
     for round_no in range(MAX_TOOL_ROUNDS + 1):
         if round_no == MAX_TOOL_ROUNDS and tools:
             kw["tool_choice"] = "none"  # loop guard: last round must answer, no more tool calls

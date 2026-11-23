@@ -42,6 +42,9 @@ SCRIBE_DEFAULTS = {
     "mite_count": None, "mite_sample": None, "mite_method": "none",
 }
 RANGES = {"brood_frames": (0, 40), "mite_count": (0, 300), "mite_sample": (50, 1000)}
+# Found in a real run: "no eggs" was filed as queen = "eggs". A positive value can't rest on a negative quote.
+NEGATION = re.compile(r"\b(no|not|none|never|without|didn'?t|couldn'?t|can'?t|wasn'?t|weren'?t|haven'?t|nothing)\b", re.I)
+POSITIVE = {"queen": {"seen", "eggs"}}
 
 
 def ground_scribe(result: dict, note: str, colony_ids: set[str]) -> dict:
@@ -72,6 +75,10 @@ def ground_scribe(result: dict, note: str, colony_ids: set[str]) -> dict:
                 clean[f] = default
                 continue
             key = "mite" if f.startswith("mite_") else f
+            if f in POSITIVE and val in POSITIVE[f] and quotes.get(f) and all(NEGATION.search(q) for q in quotes[f]):
+                dropped.append(f"{v.get('heard_as', cid)}: {f} = {val} came from words that say the opposite (“{quotes[f][0]}”), so it was not filled in.")
+                clean[f] = default
+                continue
             if quotes.get(f) or (key == "mite" and quotes.get("mites")):
                 clean[f] = val
                 clean["evidence"][f] = (quotes.get(f) or quotes.get("mites"))[0]
@@ -97,6 +104,7 @@ def _numbers(text: str) -> set[str]:
             f = float(m)
         except ValueError:
             continue
+        f = abs(f)
         out.add(str(int(f)) if f == int(f) else str(f))
     return out
 
@@ -112,6 +120,8 @@ def _all_text(obj) -> str:
 def check_advice(out: dict, tool_text: str, findings: list[dict], afb_flag: bool = False) -> list[str]:
     """Return a list of problems. Empty list = passed."""
     problems = []
+    if not any([(out.get("headline") or "").strip(), (out.get("answer") or "").strip(), out.get("do_next"), out.get("expect")]):
+        return ["the answer was blank"]  # seen in live runs: an all-empty JSON after a tool call
     text = _all_text({k: v for k, v in out.items() if k not in ("sources_used",)})
     allowed_nums = _numbers(tool_text) | {"0", "1", "2", "3", "7", "10", "14", "21", "24", "48", "50", "57", "60", "300", "32", "1", "100"}
     # dates in the forecast like 2026-11-24 also allow "24" and "11"

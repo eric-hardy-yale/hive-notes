@@ -126,7 +126,7 @@ def main():
     if not llm.key_source():
         sys.exit("No PORTKEY_API_KEY found in .env (this folder or the one above).")
     t0 = time.time()
-    res = {"model": llm.MODEL, "prices_per_1m": llm.PRICES, "ran_at": time.strftime("%Y-%m-%d %H:%M"), "quick": QUICK}
+    res = {"model": llm.MODEL, "key": llm.key_source(), "prices_per_1m": llm.PRICES, "ran_at": time.strftime("%Y-%m-%d %H:%M"), "quick": QUICK}
     print("Scribe, full prompt (cached reference):")
     res["scribe_full"] = scribe_suite(lean=False)
     print("Scribe, lean prompt (cost cut: no reference):")

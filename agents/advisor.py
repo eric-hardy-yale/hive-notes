@@ -31,6 +31,7 @@ How to work:
 - If the record mentions sunken or greasy cappings or possible foulbrood, tell them not to move frames and to call
   their state apiarist.
 - Plain words, short sentences, say why and how sure you are (high / medium / low).
+- Write dates the way people say them ("Tue Nov 24"), never as 2026-11-24.
 - Off-topic questions (not about this keeper's bees): answer is "I can only help with your colonies." and keep lists empty.
 - In plan mode, answer is "". In question mode, put the reply in answer and keep expect/do_next short (they may be empty).
 
@@ -138,14 +139,19 @@ def run(payload: dict, question: str | None = None, cache: bool = True) -> dict:
         return r
 
     record_text = _compact({"today": today, "colony": colony, "rule_findings": findings})
-    mode = f"Question mode.\n<question>\n{question}\n</question>" if question else "Plan mode: give the plan for this colony."
-    user = f"{mode}\n\nRecord (JSON):\n{record_text}"
+    task = ("Question mode. Answer the keeper's question in \"answer\" (2-5 sentences), using the record and tools. "
+            "Fill headline with a one-line summary.\n<question>\n" + question + "\n</question>") if question else (
+            "Plan mode. Fill every field: headline (one line), expect (one item for each rule finding and anything else the "
+            "record shows), do_next (one concrete action for each risk or watch finding, with a by date), come_back (a date from "
+            "the forecast when the weather allows a look), for_new_keepers (one or two sentences), answer \"\", sources_used.")
+    user = f"Record (JSON):\n{record_text}\n\n{task}\nCall get_forecast first, then write the JSON answer. Never leave headline empty."
     impl = {"get_forecast": get_forecast, "get_history": get_history, "get_treatment_label": get_treatment_label}
     res = llm.run_agent("advisor", SYSTEM, user, schema=SCHEMA, tools=TOOLS, tool_impl=impl, cache=cache)
     usage, trace = res["usage"], list(res["trace"])
     out = res["output"]
     problems = check_advice(out, record_text + " ".join(tool_text_parts), findings, afb) if "_error" not in out else [out["_error"]]
     retried, withheld, first_problems = False, False, list(problems)
+    attempts = [out]
     if problems:
         retried = True
         fix = (f"{user}\n\nYour previous answer was rejected by the app's checker for these reasons: {'; '.join(problems)}. "
@@ -154,9 +160,10 @@ def run(payload: dict, question: str | None = None, cache: bool = True) -> dict:
         usage = llm.add_usage(usage, res2["usage"]) | {"cost_usd": round(usage["cost_usd"] + res2["usage"]["cost_usd"], 8)}
         trace += res2["trace"]
         out = res2["output"]
+        attempts.append(out)
         problems = check_advice(out, record_text + " ".join(tool_text_parts), findings, afb) if "_error" not in out else [out["_error"]]
         if problems:
             withheld, out = True, _fallback(findings)
     return {"advice": out, "checks": {"passed": not problems, "first_try_problems": first_problems, "final_problems": problems,
                                       "retried": retried, "withheld": withheld},
-            "injection_flags": flags, "usage": usage, "trace": trace}
+            "injection_flags": flags, "usage": usage, "trace": trace, "attempts": attempts}

@@ -65,7 +65,7 @@ Then open **http://localhost:8040** in a browser. On a computer it shows inside 
 Notes, questions and photos are treated as data, never as instructions. The Scribe can only fill fields it can quote from your words. The Advisor's numbers must come from your records or a tool, and it can't give doses or name products outside the label list. Answers that fail the checks get one retry, then the app shows its own rules instead. Nothing is saved without your tap. The server has a daily dollar cap, a per-device rate limit, a size limit, a tool-round limit and an optional access code, and it never serves `.env` or code. Details and test results are in `docs/report.html`.
 
 ## Deploying your own copy
-- **Render** (app + AI): New → Blueprint → this repo. Paste `PORTKEY_API_KEY` when asked. `APP_ACCESS_CODE` is generated for you; enter it in the app under More → AI helper.
+- **Render** (app + AI): New → Blueprint → this repo. Paste `OPENAI_API_KEY` or `PORTKEY_API_KEY` when asked (one is enough). `APP_ACCESS_CODE` is generated for you; enter it in the app under More → AI helper.
 - **GitHub Pages** (app only): the workflow in `.github/workflows/pages.yml` publishes `web/`. Point it at an AI server under More → AI helper.
 
 Decision support from rules of thumb, not a vet or inspector. Follow product labels and your state's rules.

@@ -79,7 +79,7 @@ function renderAdvice(j) {
     : ch.retried ? `<div class="note ok">🛡 Checked: the first answer was rejected (${esc((ch.first_try_problems || []).join("; "))}) and fixed on retry.</div>`
     : `<div class="note ok">🛡 Checked: numbers match your records and the forecast; no doses; nothing serious left out.</div>`;
   return `${(j.injection_flags || []).length ? `<div class="note warn">⚠️ Your text contained instructions aimed at the AI (“${esc(j.injection_flags[0])}”). They were treated as plain text, not orders.</div>` : ""}
-    ${a.headline ? `<div class="card"><b>${esc(a.headline)}</b>${a.answer ? `<div style="margin-top:6px;font-size:14.5px">${esc(a.answer)}</div>` : ""}</div>` : ""}
+    ${a.headline ? `<div class="card"><b>${esc(a.headline)}</b>${a.answer && a.answer.trim() !== (a.headline || "").trim() ? `<div style="margin-top:6px;font-size:14.5px">${esc(a.answer)}</div>` : ""}</div>` : ""}
     ${(a.expect || []).length ? `<h2>What to expect</h2>${a.expect.map(e => `<div class="card expect ${e.sure === "high" ? "risk" : e.sure === "medium" ? "warn" : "info"}"><b>${esc(e.title)}</b><div class="small" style="margin-top:4px">${esc(e.why)}</div><div class="conf">How sure: <b>${esc(e.sure)}</b></div></div>`).join("")}` : ""}
     ${(a.do_next || []).length ? `<h2>What to do next</h2><div class="card">${a.do_next.map(d => `<div class="todo"><span class="box"></span><div><b>${esc(d.action)}</b>${d.by ? `<div class="small">by ${esc(d.by)}</div>` : ""}<div class="small">${esc(d.why)}</div></div></div>`).join("")}</div>` : ""}
     ${a.come_back?.date ? `<div class="comeback"><div class="small">Come back</div><div class="big">${esc(a.come_back.date)}</div><div class="small">${esc(a.come_back.why)}</div></div>` : ""}
