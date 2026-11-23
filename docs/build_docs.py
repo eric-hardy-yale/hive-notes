@@ -141,7 +141,8 @@ figcaption{font-size:13px;color:var(--muted);margin-top:6px} .row{display:flex;g
 .ok{color:var(--ok);font-weight:700} .bad{color:var(--risk);font-weight:700} .muted{color:var(--muted);font-size:14px}
 code,pre{font-family:ui-monospace,Menlo,monospace;font-size:12.5px} pre{background:#f6f2ea;border-radius:10px;padding:10px 12px;overflow-x:auto;white-space:pre-wrap}
 .diagram{width:100%;height:auto;background:#fbf8f2;border-radius:14px;border:1px solid var(--line)}
-@media print{body{background:#fff} main{padding:0;max-width:none} h2{break-before:auto} figure,table,.box,.diagram{break-inside:avoid} a{color:inherit}}
+@media print{@page{size:letter;margin:.6in} body{background:#fff;font-size:12pt} main{padding:0;max-width:none} h2{break-before:auto;margin-top:26px} figure,tr,.box,.diagram,.quote{break-inside:avoid} h2,h3{break-after:avoid} a{color:inherit}
+ .row{gap:14px} .row figure,figure{flex:0 1 165px;max-width:165px;margin:8px auto} figure img{max-height:3.6in;width:auto;max-width:100%} figure img{box-shadow:none;border-radius:10px} figcaption{font-size:9.5pt} .diagram{max-height:4.2in}}
 """
 
 
@@ -194,7 +195,7 @@ The model is so cheap that hosting, not tokens, is most of the cost.</p>
 <tr><td>Full (with cached reference)</td><td class=n>{sf['input']:,.0f}</td><td class=n>{money(sf['cost'], 5)}</td><td class=n>{acc_f:.0%}</td><td class=n>{inv_f}</td></tr>
 <tr><td>Lean (no reference)</td><td class=n>{sl['input']:,.0f}</td><td class=n>{money(sl['cost'], 5)}</td><td class=n>{acc_l:.0%}</td><td class=n>{inv_l}</td></tr></table>
 <p>{lean_verdict(sf, sl, acc_f, acc_l)}</p>
-<p class=muted>Run-to-run variation is real. In an earlier full run (before two prompt fixes), the full prompt scored 36 of 37 and the lean prompt 35 of 37. Twelve notes is a small test. The field test did not reach the Scribe (see section 6), so these notes are still the only Scribe test.</p>"""
+<p class=muted>Run-to-run variation is real. In an earlier full run (before two prompt fixes), the full prompt scored 36 of 37 and the lean prompt 35 of 37. Twelve notes is a small test. The field test did not reach the Scribe (see section 7), so these notes are still the only Scribe test.</p>"""
 
 
 def lean_verdict(sf, sl, acc_f, acc_l) -> str:
@@ -326,7 +327,7 @@ Repo: <a href="{REPO}">{REPO}</a><br>
 Live app with AI: <a href="{LIVE_AI}">{LIVE_AI}</a> (access code in the Canvas comment) · Phone-only copy: <a href="{LIVE_PAGES}">{LIVE_PAGES}</a></div>
 <div class="row">{img('02_yard', 'The apiary screen: live 10-day forecast, freeze warning, and each colony’s most urgent need.')}{img('04_summary_rules', 'After a visit: how it looks now and what to expect, each with “how sure” and “why”.')}</div>
 
-<h2>1. Motivation</h2>
+<h2>2. Motivation</h2>
 <p>The person behind this app is a working beekeeper I know. I asked what an app could do for them, and the first answer was the honest one:</p>
 <div class="quote">“Note taking is the only thing that I would use the app for.”</div>
 <p>When I pointed out that note apps for beekeepers already exist, they described the real jobs: <b>record the conditions</b> of every visit (“the degrees of it matters”), <b>find the queen</b> (“you put the dot on it, but it’s still … always hard”),
@@ -336,7 +337,7 @@ Live app with AI: <a href="{LIVE_AI}">{LIVE_AI}</a> (access code in the Canvas c
 <p><b>What it costs.</b> Colony losses are the cost. US keepers lost an estimated 55.6% of managed colonies in 2024–25 and 39.9% in 2025–26 (national survey). Each loss costs about $155–$210 to replace, plus the honey and the season.
 The work costs too: an inspection is done with gloves on, in a veil, with bees in the air. That's why notes get skipped, and why the beekeeper asked for an app that would “automatically record stuff.”</p>
 
-<h2>2. What is new here</h2>
+<h2>3. What is new here</h2>
 <p>I searched before building. Named products, from their own store pages and websites (claims not independently tested):</p>
 <table><tr><th>Product</th><th>What it does</th><th>What it doesn't</th></tr>
 <tr><td>HiveTracks, Hivecard, ApiaryOS, ApiNote, Beehive Manager</td><td>Inspection logs; several stamp the weather on each visit; HiveTracks has guided inspections and to-dos.</td><td>No predictions from the forecast and the colony's trend; you type everything.</td></tr>
@@ -350,7 +351,7 @@ The work costs too: an inspection is done with gloves on, in a veil, with bees i
 <li><b>AI that is checked before you see it.</b> Quote-grounding, number-grounding, no doses, no dropped risks. A failed answer is retried once and otherwise replaced by the rules plan. Most AI beekeeping apps show the model's answer as-is.</li>
 <li><b>Private by default.</b> Records and photos stay on the phone, which matters because hive theft is real. The AI sees one colony's record only when the keeper taps a 🤖 button.</li></ul>
 
-<h2>3. The agents</h2>
+<h2>4. The agents</h2>
 {DIAGRAM}
 <p class=muted>The phone holds the records and a free rules engine. The server holds the key and the guards. Three agents each do one job, and code checks sit after each one. The keeper confirms everything that gets saved.</p>
 <table><tr><th>Agent</th><th>Job</th><th>Tools</th><th>Output</th></tr>
@@ -363,13 +364,13 @@ The work costs too: an inspection is done with gloves on, in a veil, with bees i
 The code takes either key: <code>PORTKEY_API_KEY</code> (the course key, through Portkey) or <code>OPENAI_API_KEY</code> (straight to OpenAI), with the same model and prices. {KEY_NOTE}</p>
 <h3>One real run, step by step</h3>{section_trace()}
 
-<h2>4. Tokenomics</h2>{section_tokenomics()}
+<h2>5. Tokenomics</h2>{section_tokenomics()}
 
-<h2>5. Safety</h2>{section_safety()}
+<h2>6. Safety</h2>{section_safety()}
 
-<h2>6. Impact</h2>{section_impact()}
+<h2>7. Impact</h2>{section_impact()}
 
-<h2>7. Limits and next steps</h2>
+<h2>8. Limits and next steps</h2>
 <ul>
 <li><b>One keeper, one region.</b> The rules of thumb (stores targets, thresholds, season calendar) are Northeast US defaults with rough regional shifts. They need checking against more keepers and extension guidance.</li>
 <li><b>The Frame Reader is a general model, not a trained bee model.</b> It suggests and the keeper confirms. A real version would fine-tune or license a detector trained on labelled frame photos.</li>
@@ -381,7 +382,7 @@ The code takes either key: <code>PORTKEY_API_KEY</code> (the course key, through
 <li><b>Predictions are only checked over time.</b> The app scores its own stores, mite and queen predictions as new readings come in. A season of use is needed to know how often it's right.</li>
 </ul>
 <p><b>With another month:</b> test it with 5–10 keepers through a club, including newer keepers; measure colonies fed before the freeze and mite counts taken on time; add encrypted sync so a mentor can see a newer keeper's records; add push reminders; build a labelled frame-photo set from field use to test or train the Frame Reader; and add a photo of each side of a frame (the keeper asked “does it do both sides?”).</p>
-<p class=muted>Sources: Auburn University / Oregon State / Apiary Inspectors of America, U.S. Beekeeping Survey 2024–25 and 2025–26 (apiaryinspectors.org); Agricultural Marketing Resource Center, Bees Profile (agmrc.org); National Honey Board, Honey Industry Facts; 2026 package-bee retailer listings (Dadant, Lappe's Bee Supply, others); competitor store pages and websites as listed in section 2; Open-Meteo for weather.</p>
+<p class=muted>Sources: Auburn University / Oregon State / Apiary Inspectors of America, U.S. Beekeeping Survey 2024–25 and 2025–26 (apiaryinspectors.org); Agricultural Marketing Resource Center, Bees Profile (agmrc.org); National Honey Board, Honey Industry Facts; 2026 package-bee retailer listings (Dadant, Lappe's Bee Supply, others); competitor store pages and websites as listed in section 3; Open-Meteo for weather.</p>
 </main></body></html>"""
 
 
@@ -403,11 +404,11 @@ def slides() -> str:
         s(f"<h2>Demo</h2><div class=r>{img('02_yard', 'Apiary + live forecast', '230px')}{img('08_scribe_result', 'Scribe: words → records', '230px')}{img('09_advisor_plan', 'Advisor: checked plan', '230px')}</div>"),
         s(f"<h2>Cost to run</h2><p>gpt-6-luna · cached prompts · rules first, AI on tap</p><p class=big>{cost_line}</p><p>Hosting, not tokens, is most of the cost at 10,000 users</p>"),
         s(f"<h2>Safety</h2><ul><li>Every Scribe field must quote the keeper</li><li>Advisor numbers must come from the records or tools; no doses; risks can't be dropped</li><li>Injection flagged and ignored; no tools that change anything</li><li>Daily $ cap, rate limit, access code, tool-round limit</li></ul><p class=big>{guards} · {attacks}</p>"),
-        (s(f"""<h2>Field test · live hive, 23 Nov</h2><div class=r style="align-items:center"><div style="flex:1.1;min-width:0">{img('20_field_1', 'The AI read honey as “capped brood”; the keeper caught it', '420px')}</div>
+        (s(f"""<h2>Impact: a real keeper, a live hive</h2><div class=r style="align-items:center"><div style="flex:1.1;min-width:0">{img('20_field_1', 'The AI read honey as “capped brood”; the keeper caught it', '420px')}</div>
 <div style="flex:1;min-width:0;font-size:.62em;padding-right:10px"><ul><li>Frame Reader: <b>{FIELD['frame']['right']} right / {FIELD['frame']['wrong']} wrong / {FIELD['frame']['missed']} missed</b> on 2 frames; ~$0.0005 a read</li>
 <li>Closing taps confirmed: 4 of 4</li><li><b>Bugs:</b> both frames lost on ›/Done; voice notes never heard a word → fixed that evening (v0.7)</li>
-<li>“You need both your hands to do this” → talk once, after closing up</li></ul><p class=q>“{e(FIELD['quotes'][2])}”</p></div></div>""") if FIELD else ""),
-        s(f"<h2>Impact</h2><p class=big>{field}</p><p>Save one colony every two winters ≈ $90/yr per keeper vs. well under $1/yr of AI</p>"),
+<li>“You need both your hands to do this” → talk once, after closing up</li></ul><p class=q>“{e(FIELD['quotes'][0])}”</p></div></div><p style="font-size:.55em;margin-top:10px"><b>Estimate:</b> save one colony every two winters ≈ $90/yr per keeper vs. well under $1/yr of AI</p>""") if FIELD else ""),
+        ("" if FIELD else s(f"<h2>Impact</h2><p class=big>{field}</p><p>Save one colony every two winters ≈ $90/yr per keeper vs. well under $1/yr of AI</p>")),
         s("<h2>What's next</h2><ul><li>5–10 keepers through a club, a full season</li><li>Encrypted sync so mentors can see a newer keeper's records</li><li>Push reminders before freezes and strip-removal dates</li><li>A labelled frame-photo set to test or train the Frame Reader</li></ul>"),
         s(f"<h2>Try it</h2><p>{REPO}</p><p>{LIVE_AI}</p><p class=muted>python server.py → localhost:8040</p>"),
     ])

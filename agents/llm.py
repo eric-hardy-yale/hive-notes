@@ -96,6 +96,20 @@ def client():
     return _client
 
 
+def _fallback_to_openai(err: Exception) -> bool:
+    """Portkey refused the key (401/403) and OPENAI_API_KEY is set: use OpenAI directly from now on."""
+    global _client
+    status = getattr(err, "status_code", None)
+    if status not in (401, 403) or not os.getenv("PORTKEY_API_KEY") or not os.getenv("OPENAI_API_KEY"):
+        return False
+    if _client is not None and "portkey" not in str(getattr(_client, "base_url", "")):
+        return False
+    from openai import OpenAI
+    print("Portkey refused the key; switching to OPENAI_API_KEY.", flush=True)
+    _client = OpenAI(api_key=os.environ["OPENAI_API_KEY"], timeout=60, max_retries=1)
+    return True
+
+
 # ---------------- spending ----------------
 _lock = threading.Lock()
 _spent = {"day": None, "usd": 0.0}
@@ -190,7 +204,14 @@ def run_agent(agent: str, system: str, user_content, *, schema: dict, tools: lis
             kw["tool_choice"] = "none"  # loop guard: last round must answer, no more tool calls
         check_budget()
         t0 = time.time()
-        resp = c.chat.completions.create(messages=messages, **kw)
+        try:
+            resp = c.chat.completions.create(messages=messages, **kw)
+        except Exception as e:
+            # If the Portkey key is refused and an OpenAI key is also set, switch to OpenAI once and retry.
+            if not _fallback_to_openai(e):
+                raise
+            c = client()
+            resp = c.chat.completions.create(messages=messages, **kw)
         u = usage_of(resp)
         total = add_usage(total, u)
         msg = resp.choices[0].message

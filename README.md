@@ -38,7 +38,7 @@ Then open **http://localhost:8040** in a browser. On a computer it shows inside 
 
 ### Tests
 ```bash
-.venv/bin/python -m unittest tests/test_guards.py -v   # code guards, offline, no key needed (15 tests)
+.venv/bin/python -m unittest tests/test_guards.py -v   # code guards, offline, no key needed (17 tests)
 .venv/bin/python tests/server_guards.py                # starts the server with strict limits; shows each guard stopping a request
 .venv/bin/python tests/live_eval.py                    # real gpt-6-luna calls: accuracy, tokens, cost, attacks (a few cents)
 ```
