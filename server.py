@@ -165,6 +165,7 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
+    sys.stdout.reconfigure(line_buffering=True)
     print(f"Hive notes on http://localhost:{PORT}  (model {llm.MODEL})")
     print(f".env read from: {', '.join(llm.ENV_FILES) or 'none found'}")
     print(f"AI: {'on via ' + llm.key_source() if llm.key_source() else 'OFF (no key) — the app still works without AI'}")
