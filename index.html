@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Hive notes</title>
+<meta name="theme-color" content="#efe9df" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Hive notes" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="stylesheet" href="app.css" />
+</head>
+<body>
+<div class="tag desk">Prototype · on a computer it shows in a phone frame · records stay in this browser</div>
+
+<div class="phone" id="phone">
+  <div class="status"><span id="clock"></span><span id="sig"></span></div>
+  <div id="view"></div>
+  <div class="fab" id="fab" style="display:none"></div>
+  <div class="tabbar" id="tabbar"></div>
+  <div class="scrim" id="scrim"></div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>const APP_VERSION = "v0.1 · 22 Nov 2026";</script>
+<script src="js/data.js"></script>
+<script src="js/rules.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/yard.js"></script>
+<script src="js/colony.js"></script>
+<script src="js/visit.js"></script>
+<script src="js/plan.js"></script>
+<script src="js/learn.js"></script>
+<script src="js/biz.js"></script>
+<script src="js/more.js"></script>
+<script>
+  loadDb();
+  stack = [{ name: db.yards.length ? "yard" : "setup", params: {} }];
+  // An unfinished visit (app closed mid-inspection) picks up where it left off
+  const dv = db.drafts.visit;
+  if (dv && !dv.saved && col(dv.colonyId)) stack.push({ name: dv.type === "full" ? "visitCam" : "visitStart", params: { id: dv.colonyId } });
+  render();
+  refreshAllWeather();
+  addEventListener("online", () => { refreshAllWeather(); rerender(); });
+  addEventListener("offline", () => rerender());
+  // Back from the background: new day → reload; otherwise refresh the forecast if it's old
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") return;
+    if (isoD(new Date()) !== TODAY) location.reload(); else refreshAllWeather();
+  });
+  if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>
