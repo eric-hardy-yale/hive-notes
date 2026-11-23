@@ -24,7 +24,7 @@ SHOTS = DOCS / "screenshots"
 DATA = DOCS / "data"
 AUTHOR = "Eric Hardy"
 REPO = "https://github.com/eric-hardy-yale/hive-notes"
-LIVE_AI = "https://hive-notes.onrender.com"
+LIVE_AI = "https://hive-notes-bzhj.onrender.com"
 LIVE_PAGES = "https://eric-hardy-yale.github.io/hive-notes/"
 PRICES = {"input": 0.10, "cached": 0.01, "cache_write": 0.125, "output": 0.50}
 

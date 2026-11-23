@@ -1,5 +1,5 @@
 /* Offline: keep the app's own files on the phone. Weather always goes to the network. */
-const CACHE = "hive-notes-v2";
+const CACHE = "hive-notes-v3";
 const FILES = ["./", "index.html", "app.css", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png",
   "js/data.js", "js/rules.js", "js/ui.js", "js/yard.js", "js/colony.js", "js/visit.js", "js/plan.js", "js/learn.js", "js/biz.js", "js/more.js", "js/ai.js"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });

@@ -2,7 +2,7 @@
 
 **A phone app for beekeepers that records each hive visit — what you saw, said and photographed, plus the weather — and has AI agents turn it into what to expect and what to do next.**
 
-- **Live app (with AI):** https://hive-notes.onrender.com — free server, so the first load after a quiet spell can take about a minute. It asks for an access code (in the Canvas submission comment).
+- **Live app (with AI):** https://hive-notes-bzhj.onrender.com — free server, so the first load after a quiet spell can take about a minute. It asks for an access code (in the Canvas submission comment).
 - **Live app (offline phone version, no AI server):** https://eric-hardy-yale.github.io/hive-notes/
 - **Run it yourself:** below. About 3 minutes.
 
