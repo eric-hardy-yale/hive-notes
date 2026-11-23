@@ -59,6 +59,7 @@ screen("more", {
       <div class="small" style="margin-top:4px">${esc(region().note)} Shifts the season calendar and winter-stores targets (a two-deep hive needs ~${winterTarget({ type: "hive", boxes: [{ depth: "deep", frames: 10 }, { depth: "deep", frames: 10 }] })} lb here).</div>
       <h2>Country (for treatment rules)</h2>${chips("country", Object.entries(COUNTRIES), s.country || "US", false, true)}
       <div class="small" style="margin-top:4px">The treatment screen flags products that may not be registered here. It's a starting list — confirm with your state or national list.</div>
+      ${aiSettingsHtml()}
       <h2>Your data</h2>
       <div class="note ${daysSince == null || daysSince > 30 ? "warn" : "ok"}">🔒 Everything is stored only on this phone. ${daysSince == null ? "<b>No backup yet.</b> If the phone is lost or the app is deleted, so are your records." : `Last backup ${daysSince === 0 ? "today" : daysSince + " days ago"}.`}</div>
       <button class="btn" id="backup">Back up records (small file)</button>
@@ -73,6 +74,7 @@ screen("more", {
       <button class="btn danger" id="wipe">Delete everything on this phone</button><div style="height:20px"></div>`;
   },
   mount(p, v) {
+    aiSettingsMount(v);
     photoCount().then(n => { const el = v.querySelector("#pc"); if (el) el.textContent = n ? `(${n} photos)` : "(no photos yet)"; });
     v.querySelectorAll("[data-note]").forEach(el => el.onclick = () => { db.settings.notify[el.dataset.note] = !db.settings.notify[el.dataset.note]; saveDb(); rerender(); });
     v.querySelector('[data-key="region"]').addEventListener("change", () => { db.settings.region = chipVal(v, "region"); db.settings.regionSet = true; saveDb(); toast("Region updated — calendar and targets shifted"); rerender(); });

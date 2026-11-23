@@ -116,7 +116,8 @@ screen("visitCam", {
       <div class="tabs2">${c.boxes.map((x, i) => `<span data-bx="${i}" class="${i === camBox ? "on" : ""}">Box ${i + 1} · ${x.depth}${i === c.boxes.length - 1 ? " (top)" : i === 0 ? " (bottom)" : ""}</span>`).join("")}</div>
       <div class="between"><h1 style="font-size:21px;margin:4px 0">Box ${camBox + 1} · Frame ${camFrame} of ${b.frames}</h1><span>${camFrame > 1 ? `<button class="btn sm ghost" id="prevF">‹</button>` : ""}<button class="btn sm ghost" id="nextF">›</button></span></div>
       ${shot}
-      <div class="small" style="margin:4px 0 2px">The photo is optional — the taps below are what the app reads.</div>
+      ${photo && d.pending && aiOn() ? `<button class="btn sm dark" id="aiRead">🤖 Read this photo</button>` : ""}
+      ${d.aiRead && d.aiRead.key === d.pending ? `<div class="note">🤖 AI suggested the taps below (${esc(d.aiRead.confidence || "?")} confidence)${d.aiRead.problem ? ` — ${esc(d.aiRead.problem)}` : ""}. Check them before saving.${usageLine(d.aiRead.usage)}</div>` : `<div class="small" style="margin:4px 0 2px">The photo is optional — the taps below are what the app reads.</div>`}
       <div class="q"><div class="lbl">On this frame</div>${chips("sees", SEES, sel.sees, true)}</div>
       ${sel.sees.some(x => x === "honey" || x === "nectar") ? `<div class="q"><div class="lbl">How full of honey/nectar</div>${chips("amount", [["1", "Full"], ["0.75", "¾"], ["0.5", "½"], ["0.25", "¼"]], sel.amount || "0.5", false, true)}</div>` : ""}
       ${sel.sees.some(x => x === "capped" || x === "larvae" || x === "eggs") ? `<div class="q"><div class="lbl">Brood pattern</div>${chips("pattern", [["solid", "Solid"], ["spotty", "Spotty"]], sel.pattern || "solid", false, true)}</div>` : ""}
@@ -147,6 +148,7 @@ screen("visitCam", {
         d.pending = key; saveDb(); rerender();
       } catch (x) { toast("Couldn't read that photo"); }
     };
+    v.querySelector("#aiRead")?.addEventListener("click", () => frameReadInto(d, rerender));
     const goTo = (bi, fi) => { d.sel = null; if (d.pending) { photoDel(d.pending); d.pending = null; } camBox = bi; camFrame = fi; saveDb(); render(); };
     if (camMode === "hive") {
       v.querySelector("#saveFront").onclick = () => {
@@ -175,6 +177,7 @@ screen("visitCam", {
       const key = `${camBox}-${camFrame}`, old = d.frames[key]?.photo, fr = frameFrom(d.sel);
       fr.photo = d.pending || old || null; if (d.pending && old && old !== d.pending) photoDel(old);
       fr.lb = +(fr.honey * frameCap(c.boxes[camBox])).toFixed(1);
+      if (d.aiRead && d.aiRead.key === d.pending) fr.ai = { confidence: d.aiRead.confidence, suggested: true };
       d.frames[key] = fr; d.pending = null; saveDb(); advance();
     };
     v.querySelector("#skipBox").onclick = () => { if (camBox > 0) goTo(camBox - 1, 1); else toast("That was the bottom box"); };
@@ -199,7 +202,7 @@ screen("visitTaps", {
       <div class="q"><div class="lbl">Smell & look</div>${chips("smell", [["normal", "Normal"], ["sour", "Sour / off"], ["spotty", "Spotty brood"], ["sunken", "Sunken / greasy cappings"], ["dwv", "Deformed wings"]], t.smell || (fr.some(x => x.dwv) ? ["dwv"] : fr.some(x => x.pattern === "spotty") ? ["spotty"] : ["normal"]), true)}</div>
       <div class="q"><div class="lbl">Pests seen</div>${chips("pests", [["none", "None"], ["shb", "Hive beetles"], ["moth", "Wax moth"], ["mice", "Mouse signs"], ["yj", "Yellowjackets"], ["ants", "Ants"], ["robbing", "Robbing"], ["bear", "Bear damage"]], t.pests || ["none"], true)}</div>
       <div class="q"><div class="lbl">Did today</div>${chips("did", [["reduced", "Reduced entrance"], ["mouse", "Mouse guard on"], ["addbox", "Added box"], ["rmbox", "Removed box"], ["supersoff", "Supers off"], ["fed", "Fed"], ["treated", "Treated"], ["wash", "Mite wash"]], t.did || [], true)}</div>
-      <div class="q"><div class="lbl">Notes</div><textarea id="voice" rows="3" placeholder="Type, or tap the 🎤 on your keyboard to talk">${esc(d.voice)}</textarea>${speechOK() ? `<button class="btn sm ghost" id="mic">🎙 Talk</button>` : ""}</div>
+      <div class="q"><div class="lbl">Notes</div><textarea id="voice" rows="3" placeholder="Type, or tap the 🎤 on your keyboard to talk">${esc(d.voice)}</textarea>${speechOK() ? `<button class="btn sm ghost" id="mic">🎙 Talk</button>` : ""}${aiOn() ? `<button class="btn sm dark" id="aiFill">🤖 Fill the taps from my notes</button>` : ""}${d.aiFilled ? `<div class="small">🤖 Filled from your notes — check each tap.</div>` : ""}</div>
       <button class="btn" id="close">Close up</button>`;
   },
   mount(p, v) {
@@ -207,6 +210,13 @@ screen("visitTaps", {
     const keep = () => { d.taps = { queen: chipVal(v, "queen"), cells: chipVal(v, "cells"), heft: chipVal(v, "heft"), space: chipVal(v, "space"), temper: chipVal(v, "temper"), smell: chipVals(v, "smell"), pests: chipVals(v, "pests"), did: chipVals(v, "did") }; d.voice = v.querySelector("#voice").value; saveDb(); };
     v.querySelectorAll(".chips").forEach(g => g.addEventListener("change", keep)); v.querySelector("#voice").oninput = keep;
     const mb = v.querySelector("#mic"); if (mb) mb.onclick = () => dictate(v.querySelector("#voice"), mb, keep);
+    v.querySelector("#aiFill")?.addEventListener("click", () => { keep(); scribeForVisit(c, v, sv => {
+      const t2 = scribeToTaps(sv);
+      Object.entries(t2).forEach(([k, val]) => { if (Array.isArray(val) ? val.length : val) d.taps[k] = Array.isArray(val) ? [...new Set([...(d.taps[k] || []).filter(x => x !== "none" && x !== "normal"), ...val])] : val; });
+      if (sv.brood_frames != null) d.scribeBrood = sv.brood_frames;
+      if (sv.mite_count != null) d.scribeMites = { count: sv.mite_count, sample: sv.mite_sample || 300, method: sv.mite_method !== "none" ? sv.mite_method : "wash" };
+      d.aiFilled = { evidence: sv.evidence }; saveDb(); rerender();
+    }); });
     v.querySelector("#close").onclick = () => {
       keep();
       const did = d.taps.did || [];
@@ -300,6 +310,9 @@ function finalizeVisit(c) {
   if (d.weighed != null) { v.storesLb = d.weighed; v.weighed = true; }
   else if (d.heftFill && d.heftFill.some(x => x != null)) v.storesLb = Math.round(c.boxes.reduce((s, b, i) => s + (d.heftFill[i] ?? 0.4) * (FULL_LB[b.depth] - EMPTY_LB[b.depth]) * b.frames / 10, 0));
   if (v.storesLb == null && t.heft) v.storesLb = Math.round(winterTarget(c) * 1.1 * heftMap[t.heft]);
+  if (v.broodFrames == null && d.scribeBrood != null) v.broodFrames = d.scribeBrood;
+  if (d.scribeMites && !db.mites.some(m => m.colonyId === c.id && m.date === TODAY)) db.mites.push({ colonyId: c.id, date: TODAY, ...d.scribeMites });
+  if (d.aiFilled) v.ai = { scribe: true, evidence: d.aiFilled.evidence };
   if (v.storesLb == null) delete v.storesLb;
   if (v.storesLb == null && (d.type === "feed" || d.type === "treat" || d.type === "mites")) delete v.storesLb;
   if ((t.did || []).includes("mouse")) addEvent(c.id, "prep", "Mouse guard on");
@@ -341,11 +354,14 @@ screen("visitSummary", {
       <h2>What to do next</h2>
       <div class="card">${ns.filter(n => n.action && n.level !== "ok").map(n => `<div class="todo"><span class="box"></span><div><b>${esc(n.action)}</b>${n.due ? `<div class="small">by ${fmtD(n.due)}</div>` : ""}${nb(n.actionNewbie)}</div></div>`).join("") || `<div class="small">Nothing to do before next time.</div>`}</div>
       ${cb ? `<div class="comeback"><div class="small">Come back</div><div class="big">${fmtD(cb.date)}</div><div class="small">${esc(cb.why)}</div></div>` : ""}
+      ${aiOn() ? `<div class="row" style="gap:6px"><button class="btn sm dark" id="aiPlan">🤖 Plan with AI</button><button class="btn sm ghost" id="aiAsk">💬 Ask about ${esc(c.name)}</button></div>` : ""}
       <button class="btn ghost" data-nav="visitRecord" data-p='{"vid":"${v.id}"}'>See the full visit record</button>
       <button class="btn" id="done">Done</button>`;
   },
   mount(p, v) {
     v.querySelectorAll(".todo .box").forEach(b => b.onclick = () => { b.classList.toggle("on"); b.parentElement.classList.toggle("done"); });
+    v.querySelector("#aiPlan")?.addEventListener("click", () => adviseSheet(col(p.id)));
+    v.querySelector("#aiAsk")?.addEventListener("click", () => askSheet(col(p.id)));
     v.querySelector("#done").onclick = () => { delete db.drafts.visit; camFor = null; saveDb(); colonyTab = "overview"; stack = [{ name: "yard", params: {} }, { name: "colony", params: { id: p.id } }]; render(); toast("Visit saved"); };
   }
 });

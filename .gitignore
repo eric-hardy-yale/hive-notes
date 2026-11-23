@@ -1,2 +1,10 @@
 .DS_Store
 *.json.bak
+.env
+.env.*
+!.env.example
+logs/
+__pycache__/
+.venv/
+output/tmp/
+.DS_Store

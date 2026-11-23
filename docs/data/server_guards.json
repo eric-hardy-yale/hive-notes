@@ -1,0 +1,53 @@
+{
+ "ran_at": "2026-11-22 20:42",
+ "results": [
+  {
+   "guard": "Access code: request without the code is refused",
+   "status": 401,
+   "response": "Wrong or missing access code. Enter it in More \u2192 AI helper.",
+   "stopped_it": true
+  },
+  {
+   "guard": "Access code: wrong code is refused",
+   "status": 401,
+   "response": "Wrong or missing access code. Enter it in More \u2192 AI helper.",
+   "stopped_it": true
+  },
+  {
+   "guard": "Size limit: a 3 MB upload is refused",
+   "status": 413,
+   "response": "Request too large.",
+   "stopped_it": true
+  },
+  {
+   "guard": "Daily budget: with the cap spent, no model call is made",
+   "status": 429,
+   "response": "Today's AI budget ($0.00) is used up. It resets at midnight.",
+   "stopped_it": true
+  },
+  {
+   "guard": "Rate limit: the 4th AI request in an hour is refused",
+   "status": 429,
+   "response": "Too many AI requests from this device (limit 3 per hour).",
+   "stopped_it": true
+  },
+  {
+   "guard": "Secrets: .env is never served",
+   "status": 404,
+   "response": "",
+   "stopped_it": true
+  },
+  {
+   "guard": "Secrets: server code is never served",
+   "status": 404,
+   "response": "",
+   "stopped_it": true
+  },
+  {
+   "guard": "Path tricks: /../.env is refused",
+   "status": 404,
+   "response": "",
+   "stopped_it": true
+  }
+ ]
+}

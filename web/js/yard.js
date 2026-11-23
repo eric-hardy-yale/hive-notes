@@ -145,6 +145,7 @@ screen("yard", {
       ${yardAlerts(y.id).map(a => `<div class="note ${a.icon === "⚠️" ? "warn" : ""}">${a.icon} ${esc(a.text)}</div>`).join("")}
       <div class="small" style="margin:4px 0 8px">🌼 ${esc(flowFor(m).text)}${y.forage ? ` · ${esc(y.forage)}` : ""}</div>
       <div class="row" style="gap:6px"><button class="btn sm dark" data-nav="yardrun">🚚 Plan a yard run</button><button class="btn sm ghost" id="swarmBtn">🐝 Swarm caught</button></div>
+      ${aiOn() && cs.length ? `<button class="btn ghost" id="yardTalk" style="margin-top:8px">🎙 Talk through the yard (AI fills the records)</button>` : ""}
       <h2>Colonies</h2>
       ${cs.map(colonyCard).join("") || `<div class="small">No colonies here yet.</div>`}
       <button class="btn ghost" id="addBtn">+ Add a hive or nuc</button>
@@ -155,6 +156,7 @@ screen("yard", {
     v.querySelectorAll("[data-yard]").forEach(el => el.onclick = () => { db.settings.currentYard = el.dataset.yard; saveDb(); render(); });
     v.querySelector("#addBtn").onclick = () => addColonySheet();
     v.querySelector("#swarmBtn").onclick = () => addColonySheet({ swarm: true, type: "hive" });
+    v.querySelector("#yardTalk")?.addEventListener("click", () => yardTalkSheet());
     v.querySelector("[data-yardedit]").onclick = () => yardSheet(y);
   }
 });

@@ -1,0 +1,20 @@
+# Render.com blueprint: one free web service running server.py (app + AI agents).
+services:
+  - type: web
+    name: hive-notes
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: PORTKEY_API_KEY
+        sync: false          # you paste the course key in Render's dashboard; it never goes in the repo
+      - key: APP_ACCESS_CODE
+        generateValue: true  # Render makes a random code; enter it once in the phone app (More → AI helper)
+      - key: DAILY_BUDGET_USD
+        value: "1.00"
+      - key: RATE_PER_HOUR
+        value: "60"

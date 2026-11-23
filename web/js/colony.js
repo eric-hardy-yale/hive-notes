@@ -318,7 +318,7 @@ screen("colony", {
           <h2>Do something</h2>
           <button class="btn" data-nav="visitStart" data-p='{"id":"${c.id}"}'>📷 Start a visit</button>
           <div class="chips" style="margin-top:10px">
-            ${[["mite", "🔬 Mite count"], ["feed", "🍯 Feed"], ["treat", "💊 Treat"], ["split", "✂️ Split"], ["combine", "🔗 Combine"], ["move", "🚚 Move"], ["share", "📤 Send a summary"], ["report", "🖨 Report"], ["sold", "🤝 Sold"], ["dead", "🕯 Dead-out"]].map(([k, l]) => `<span class="chip" data-static="1" data-act="${k}">${l}</span>`).join("")}
+            ${(aiOn() ? [["aiplan", "🤖 Plan with AI"], ["ask", "💬 Ask"]] : []).concat([["mite", "🔬 Mite count"], ["feed", "🍯 Feed"], ["treat", "💊 Treat"], ["split", "✂️ Split"], ["combine", "🔗 Combine"], ["move", "🚚 Move"], ["share", "📤 Send a summary"], ["report", "🖨 Report"], ["sold", "🤝 Sold"], ["dead", "🕯 Dead-out"]]).map(([k, l]) => `<span class="chip" data-static="1" data-act="${k}">${l}</span>`).join("")}
           </div>` : `<div class="note ${c.status === "dead" ? "risk" : ""}">${esc({ dead: "Dead-out", sold: "Sold", combined: "Combined" }[c.status])} on ${fmtD(c.end.date)}. ${esc(c.end.cause ? "Cause: " + c.end.cause.join(", ") : c.end.into ? "Into " + (col(c.end.into)?.name || "") : c.end.buyer ? "To " + c.end.buyer : "")}</div>`}
         <div class="small" style="margin-top:12px">${esc(yardOf(c.yardId)?.name)} · since ${fmtD(c.since, false)} · from: ${esc(c.origin?.kind)}${c.origin?.from ? ` (${esc(col(c.origin.from)?.name)})` : ""}</div>`;
     } else if (colonyTab === "logs") {
@@ -363,7 +363,7 @@ screen("colony", {
     v.querySelector("#queenCard")?.addEventListener("click", () => queenSheet(c));
     v.querySelector("#exportOne")?.addEventListener("click", () => csvDownload(`${c.name}.csv`, [["date", "kind", "detail"], ...visitsOf(c.id).map(x => [x.date, "visit", `${x.type} stores ${x.storesLb ?? ""} brood ${x.broodFrames ?? ""} ${x.note || ""}`]), ...mitesOf(c.id).map(m => [m.date, "mites", `${m.count}/${m.sample} ${m.method}`]), ...treatsOf(c.id).map(t => [t.start, "treatment", `${t.product} remove by ${t.removeBy || ""}`]), ...feedsOf(c.id).map(f => [f.date, "feed", `${f.kind} ${f.amount}`])]));
     v.querySelectorAll("[data-remove]").forEach(b => b.onclick = () => { const t = db.treatments.find(x => x.id === b.dataset.remove); t.done = true; t.removed = TODAY; addEvent(c.id, "treat", `${t.product} removed`); saveDb(); toast("Strips removed · reminder cleared"); rerender(); });
-    const acts = { mite: miteSheet, feed: feedSheet, treat: treatSheet, split: splitSheet, combine: combineSheet, move: moveSheet, share: shareSheet, report: x => nav("report", { id: x.id }), sold: soldSheet, dead: deadSheet };
+    const acts = { mite: miteSheet, feed: feedSheet, treat: treatSheet, split: splitSheet, combine: combineSheet, move: moveSheet, share: shareSheet, aiplan: adviseSheet, ask: askSheet, report: x => nav("report", { id: x.id }), sold: soldSheet, dead: deadSheet };
     v.querySelectorAll("[data-act]").forEach(el => el.onclick = () => acts[el.dataset.act](c));
   }
 });
