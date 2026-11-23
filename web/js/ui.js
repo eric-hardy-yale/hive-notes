@@ -22,7 +22,7 @@ function render(keepScroll = false) {
   v.classList.toggle("notabs", !!def.notabs);
   const tab = def.tab || (stack[0] && SCREENS[stack[0].name].tab) || "yard";
   document.getElementById("tabbar").style.display = def.notabs ? "none" : "flex";
-  document.getElementById("tabbar").innerHTML = TABS.map(([k, ic, t]) => `<div data-tab="${k}" class="${k === tab ? "act" : ""}"><span class="ic">${ic}</span>${t}</div>`).join("");
+  document.getElementById("tabbar").innerHTML = TABS.map(([k, ic, t]) => `<div data-tab="${k}" class="${k === tab ? "act" : ""}" role="button" tabindex="0" aria-label="${t}"${k === tab ? ' aria-current="page"' : ""}><span class="ic" aria-hidden="true">${ic}</span>${t}</div>`).join("");
   const fab = document.getElementById("fab");
   const fb = typeof def.fab === "function" ? def.fab(cur.params || {}) : def.fab;
   if (fb) { fab.style.display = "block"; fab.innerHTML = fb.label; fab.onclick = fb.onclick; } else fab.style.display = "none";
@@ -38,6 +38,10 @@ function render(keepScroll = false) {
 }
 const rerender = () => render(true);
 
+/* keyboard / switch control: Enter or Space activates things that act like buttons */
+document.addEventListener("keydown", e => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches?.('[role="button"], [role="tab"]')) { e.preventDefault(); e.target.click(); }
+});
 /* ---------- global clicks ---------- */
 document.addEventListener("click", e => {
   const t = e.target;

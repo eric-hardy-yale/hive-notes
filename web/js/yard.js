@@ -1,5 +1,20 @@
 /* Apiary: home screen, apiary switcher, add colony, swarm caught, trip packing list, past colonies */
 
+/* Apiary switcher: tap the apiary name on the home screen to switch, add or edit */
+function apiarySheet() {
+  const cur = db.settings.currentYard;
+  sheet(`<h3>Your apiaries</h3>
+    ${db.yards.map(y => { const n = activeIn(y.id).length; return `<div class="card tap row${y.id === cur ? " current" : ""}" data-ysel="${y.id}" role="button" aria-current="${y.id === cur}"><div class="grow"><b>${esc(y.name)}</b><div class="small">${n} ${n === 1 ? "colony" : "colonies"}${y.place ? ` · ${esc(y.place)}` : y.lat == null ? " · no location yet" : ""}</div></div>${y.id === cur ? `<span class="check" aria-label="Showing now">✓</span>` : `<span class="chev">›</span>`}</div>`; }).join("")}
+    <button class="btn" id="apAdd">+ Add an apiary</button>
+    <button class="btn ghost" id="apEdit">✎ Edit this apiary</button>
+    <button class="btn ghost" data-close>Close</button>`, s => {
+    s.querySelectorAll("[data-ysel]").forEach(el => el.onclick = () => { db.settings.currentYard = el.dataset.ysel; saveDb(); closeSheet(); render(); });
+    s.querySelector("#apAdd").onclick = () => { closeSheet(); setTimeout(() => yardSheet(null, () => { render(); toast("Apiary added"); }), 200); };
+    s.querySelector("#apEdit").onclick = () => { closeSheet(); setTimeout(() => yardSheet(yardOf(cur)), 200); };
+    s.querySelector("[data-close]").onclick = closeSheet;
+  });
+}
+
 function startVisitPicker() {
   const here = activeIn(db.settings.currentYard), other = db.colonies.filter(c => c.status === "active" && c.yardId !== db.settings.currentYard);
   if (!here.length && !other.length) { toast("Add a hive or nuc first"); addColonySheet(); return; }
@@ -129,7 +144,8 @@ function addColonySheet(preset = {}) {
     <div class="q"><div class="lbl">Name or number</div><input id="nm" maxlength="24" value="${esc(type === "nuc" ? `Nuc ${nextNum("nuc")}` : `Hive ${nextNum("hive")}`)}"/></div>
     <div class="q"><div class="lbl">Apiary</div>${chips("yard", db.yards.map(y => [y.id, y.name]), db.settings.currentYard, false, true)}</div>
     ${preset.swarm ? `<div class="q"><div class="lbl">Where you caught it</div><input id="where" placeholder="e.g. neighbor's maple, bait hive by the shed"/></div>`
-      : `<div class="q"><div class="lbl">Where it came from</div>${chips("origin", [["package", "Package"], ["nuc", "Bought nuc"], ["split", "My split"], ["swarm", "Swarm"], ["other", "Other"]], "package", false, true)}</div>`}
+      : `<div class="q"><div class="lbl">Where it came from</div>${chips("origin", [["package", "Package"], ["nuc", "Bought nuc"], ["split", "My split"], ["swarm", "Swarm I caught"], ["other", "Other"]], "package", false, true)}
+        <input id="onote" placeholder="Details (optional), e.g. swarm from the neighbor's maple" maxlength="80"/></div>`}
     ${boxesBuilder(type)}
     <div class="q"><div class="lbl">Queen</div>${chips("qyear", [String(yearOf(TODAY)), String(yearOf(TODAY) - 1), "unknown"], preset.swarm ? "unknown" : String(yearOf(TODAY)), false, true)}
       ${chips("qmarked", [["1", "Marked"], ["0", "Unmarked"]], "0", false, true)}</div>
@@ -140,9 +156,9 @@ function addColonySheet(preset = {}) {
       const name = s.querySelector("#nm").value.trim().replace(/\s+/g, " ") || (type === "nuc" ? `Nuc ${nextNum("nuc")}` : `Hive ${nextNum("hive")}`);
       const qy = chipVal(s, "qyear"), origin = preset.swarm ? "swarm" : chipVal(s, "origin");
       const c = { id: uid("c"), name, yardId: chipVal(s, "yard"), type, status: "active",
-        boxes: readBoxes(s, type), origin: { kind: origin, note: preset.swarm ? (s.querySelector("#where").value || "Swarm") : "" }, since: TODAY,
+        boxes: readBoxes(s, type), origin: { kind: origin, note: preset.swarm ? (s.querySelector("#where").value || "Swarm") : (s.querySelector("#onote")?.value.trim() || "") }, since: TODAY,
         queen: qy === "unknown" ? { year: null, source: origin, marked: false, laying: true, since: TODAY } : { year: +qy, source: origin, marked: chipVal(s, "qmarked") === "1", laying: true, since: TODAY } };
-      db.colonies.push(c); addEvent(c.id, preset.swarm ? "swarm" : "added", preset.swarm ? `Swarm caught: ${c.origin.note}` : `Added (${origin})`);
+      db.colonies.push(c); addEvent(c.id, origin === "swarm" ? "swarm" : "added", origin === "swarm" ? `Swarm caught${c.origin.note ? ": " + c.origin.note : ""}` : `Added (${origin})${c.origin.note ? ": " + c.origin.note : ""}`);
       saveDb(); closeSheet(); toast(`${name} added`); rerender();
     };
   });
@@ -157,18 +173,16 @@ screen("yard", {
     const y = yardOf(db.settings.currentYard), cs = activeIn(y.id), m = monthOf(TODAY);
     const ended = db.colonies.filter(c => c.status !== "active").length, nt = notifications().on, adv = openAdvice(todayWx(y.id));
     return `
-      ${db.yards.length > 1 ? `<div class="seg">${db.yards.map(x => `<span data-yard="${x.id}" class="${x.id === y.id ? "on" : ""}">${esc(x.name)}</span>`).join("")}</div>` : ""}
       <div class="hero">
-        <div class="row"><h1 class="grow">${esc(y.name)}</h1><button class="pen" data-yardedit="${y.id}" aria-label="Edit apiary">✎</button><span class="bell" data-nav="inbox" aria-label="Alerts">🔔${nt.length ? `<i>${nt.length}</i>` : ""}</span></div>
+        <div class="row"><h1 class="grow"><button class="apsw" id="apSwitch" aria-haspopup="dialog" aria-label="${esc(y.name)}: switch, add or edit apiaries">${esc(y.name)}<span class="caret" aria-hidden="true">▾</span></button></h1><button class="bell" data-nav="inbox" aria-label="Alerts${nt.length ? `, ${nt.length} new` : ""}">🔔${nt.length ? `<i>${nt.length}</i>` : ""}</button></div>
         <p class="sub">${cs.length} ${cs.length === 1 ? "colony" : "colonies"} · ${fmtD(TODAY)} · ${esc(seasonFor(m).name)}</p>
         ${forecastStrip(y.id)}
         ${todayWx(y.id) ? `<div class="small" style="margin:0 0 2px">Today: <b>${esc(adv.short)}</b>${adv.window ? ` · best ${esc(adv.window)}` : ""}</div>` : ""}
       </div>
       ${y.signal === "none" ? `<div class="note warn">⚑ No cell signal at this apiary. Everything still saves on your phone; open the app at home first so the forecast is fresh.</div>` : ""}
       ${yardAlerts(y.id).map(a => `<div class="note ${a.icon === "⚠️" ? "warn" : ""}">${a.icon} ${esc(a.text)}</div>`).join("")}
-      <div class="small" style="margin:4px 0 8px">🌼 ${esc(flowFor(m).text)}${y.forage ? ` · ${esc(y.forage)}` : ""}</div>
-      <div class="row" style="gap:6px"><button class="btn sm dark" data-nav="yardrun">🧺 Packing list</button><button class="btn sm ghost" id="swarmBtn">🐝 Swarm caught</button></div>
-      ${aiOn() && cs.length ? `<button class="btn ghost" id="yardTalk" style="margin-top:8px">🎙 Talk through the apiary (AI fills in the records)</button>` : ""}
+      <div class="between" style="margin:2px 0 4px"><span class="small grow">🌼 ${esc(flowFor(m).text)}${y.forage ? ` · ${esc(y.forage)}` : ""}</span><button class="btn sm ghost" data-nav="yardrun" style="margin:0;flex:0 0 auto">🧺 Packing list</button></div>
+      ${aiOn() && cs.length ? `<button class="btn ghost twoline" id="yardTalk" style="margin-top:10px">🎙 Talk through the apiary<span class="btnsub">Say what you saw. The AI fills in each colony's record.</span></button>` : ""}
       <h2>Colonies</h2>
       ${cs.map(colonyCard).join("") || `<div class="small">No colonies here yet.</div>`}
       <button class="btn ghost" id="addBtn">+ Add a hive or nuc</button>
@@ -178,9 +192,8 @@ screen("yard", {
   mount(p, v) {
     v.querySelectorAll("[data-yard]").forEach(el => el.onclick = () => { db.settings.currentYard = el.dataset.yard; saveDb(); render(); });
     v.querySelector("#addBtn").onclick = () => addColonySheet();
-    v.querySelector("#swarmBtn").onclick = () => addColonySheet({ swarm: true, type: "hive" });
     v.querySelector("#yardTalk")?.addEventListener("click", () => yardTalkSheet());
-    v.querySelector("[data-yardedit]").onclick = () => yardSheet(y);
+    v.querySelector("#apSwitch").onclick = () => apiarySheet();
   }
 });
 

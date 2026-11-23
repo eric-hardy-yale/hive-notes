@@ -171,3 +171,34 @@ input:focus, select:focus, textarea:focus { border-color: #f0a20e; box-shadow: 0
 .camshot span { font-size: 16px; font-family: var(--round); font-weight: 700; }
 .phone.dark .hero .bell { background: #2a1f12; color: var(--ink); }
 .phone.dark .btn.dark { border: 1.5px solid #ffc93c66; }
+
+/* ============ UX sweep ============ */
+/* apiary name is the switcher (tap: switch, add, edit) */
+.apsw { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font: inherit; color: inherit; max-width: 100%; border-radius: 10px; }
+.apsw:focus-visible { outline: 3px solid #2b1d0e55; outline-offset: 2px; }
+.apsw .caret { font-size: 15px; width: 24px; height: 24px; flex: 0 0 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: #fffbeecc; color: #5a3b0c; }
+.phone.dark .apsw .caret { background: #2a1f12; color: #e8cf98; }
+.card.current { border-color: #f0c35a; background: #fffaeb; }
+.phone.dark .card.current { background: #2a1f0c; border-color: #6b4c12; }
+.check { color: var(--ok); font-weight: 800; font-size: 18px; }
+/* bell is a real button now */
+button.bell { font: inherit; color: inherit; min-width: 44px; min-height: 36px; }
+/* two-line button: action + what it does */
+.btn.twoline { line-height: 1.25; padding: 12px 14px; }
+.btnsub { display: block; font: 500 12.5px -apple-system, system-ui, sans-serif; color: var(--muted); margin-top: 3px; }
+/* colony actions: grouped tiles that look like buttons, not like selectable chips */
+.actgroup { margin-bottom: 12px; }
+.actgroup .lbl { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.actgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.atile { all: unset; box-sizing: border-box; cursor: pointer; min-height: 68px; padding: 8px 4px; border-radius: 16px; background: var(--card); border: 1px solid var(--line);
+  box-shadow: var(--shadow); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-align: center;
+  font: 650 13px var(--round); color: var(--ink); line-height: 1.15; }
+.atile .aic { font-size: 22px; }
+.atile:active { transform: scale(.97); background: var(--honey-soft); }
+.atile:focus-visible { outline: 3px solid #f0a20e; }
+.phone.dark .atile { box-shadow: none; }
+/* comfortable tap targets (about 44 pt), gloves included */
+.chip { min-height: 40px; display: inline-flex; align-items: center; }
+.back { padding: 10px 8px 8px 0; min-height: 44px; }
+.pen { min-width: 40px; min-height: 40px; }
+.tabbar div:focus-visible, .tabs2 span:focus-visible { outline: 3px solid #f0a20e; border-radius: 10px; }

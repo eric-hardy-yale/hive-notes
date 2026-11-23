@@ -342,7 +342,7 @@ screen("visitSummary", {
       <h2>How it looks now</h2>
       <div class="card">
         ${v.queen ? `<div class="between"><span>Queen ${qf ? `<span class="src">B${+qf[0].split("-")[0] + 1}·F${qf[0].split("-")[1]}</span>` : `<span class="src">✋</span>`}</span>${pill(v.queen === "seen" || v.queen === "eggs" ? "ok" : "risk", { seen: "Seen, laying", eggs: "Eggs seen", neither: "Not seen, no eggs", skip: "Not checked" }[v.queen])}</div>` : ""}
-        ${v.broodFrames != null ? `<div class="between" style="margin-top:6px"><span>Brood <span class="src">frames</span></span><span><b>${v.broodFrames} frames</b>${delta(v.broodFrames, prev?.broodFrames, "")}</span></div>` : ""}
+        ${v.broodFrames != null ? `<div class="between" style="margin-top:6px"><span>Brood <span class="src">frames</span></span><span><b>${v.broodFrames} ${v.broodFrames === 1 ? "frame" : "frames"}</b>${delta(v.broodFrames, prev?.broodFrames, "")}</span></div>` : ""}
         ${v.storesLb != null ? `<div class="between" style="margin-top:6px"><span>Stores (est.) <span class="src">${v.weighed ? "weighed" : fr.length ? `${v.framesSeen} of ${v.framesTotal} frames` : ""}${!v.weighed && !fr.length && (v.taps?.heft || v.type === "heft") ? " ✋ heft" : ""}</span></span><span><b>~${v.storesLb} lb</b>${delta(v.storesLb, prev?.storesLb, " lb")}</span></div>` : ""}
         ${fr.some(([, x]) => x.mites) ? `<div class="between" style="margin-top:6px"><span>Mites on bees</span><b>seen on ${fr.filter(([, x]) => x.mites).length} of ${fr.length} frames</b></div><div class="small">Mites you can see on bees are the tip of it — most hide under cappings. Do a wash.</div>` : ""}
         ${v.hive ? `<div class="small" style="margin-top:6px">Front: ${esc(v.hive.text || v.hive)}</div>` : ""}

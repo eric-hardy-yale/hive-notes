@@ -306,7 +306,19 @@ screen("colony", {
     let body = "";
     if (colonyTab === "overview") {
       const ns = needsFor(c), cb = active ? comeBack(c) : null, st = storesNow(c);
-      body = `
+      const tile = ([k, ic, l]) => `<button class="atile" data-act="${k}"><span class="aic" aria-hidden="true">${ic}</span>${l}</button>`;
+      const group = (title, items) => `<div class="actgroup"><div class="lbl">${title}</div><div class="actgrid">${items.map(tile).join("")}</div></div>`;
+      const actions = active ? `<h2>Do something</h2>
+          ${group("Record", [["mite", "🔬", "Mite count"], ["feed", "🍯", "Feed"], ["treat", "💊", "Treat"]])}
+          ${aiOn() ? group("Ask the AI", [["aiplan", "🤖", "Plan next steps"], ["ask", "💬", "Ask a question"]]) : ""}
+          ${group("Change the colony", [["split", "✂️", "Split"], ["combine", "🔗", "Combine"], ["move", "🚚", "Move"]])}
+          ${group("Share", [["share", "📤", "Send a summary"], ["report", "🖨", "Report"]])}
+          ${group("End", [["sold", "🤝", "Sold"], ["dead", "🕯", "Dead-out"]])}` : "";
+      const expect = active ? `<h2>What to expect</h2>${ns.map(n => needCard(n, true)).join("") || `<div class="small">Nothing flagged.</div>`}
+          ${cb ? `<div class="comeback"><div class="small">Come back</div><div class="big">${fmtD(cb.date)}</div><div class="small">${esc(cb.why)}</div></div>` : ""}` : `<div class="note ${c.status === "dead" ? "risk" : ""}">${esc({ dead: "Dead-out", sold: "Sold", combined: "Combined" }[c.status])} on ${fmtD(c.end.date)}. ${esc(c.end.cause ? "Cause: " + c.end.cause.join(", ") : c.end.into ? "Into " + (col(c.end.into)?.name || "") : c.end.buyer ? "To " + c.end.buyer : "")}</div>`;
+      body = `${expect}
+        ${actions}
+        <h2>The colony</h2>
         <div class="card"><div class="between"><b>Setup</b><span class="small">tap a box to change it</span></div>
           <div class="stack"><div class="stand"></div>${c.boxes.map((b, i) => `<div class="boxv ${b.depth}" data-box="${i}">${b.depth} · ${b.frames}f ${b.role === "super" ? "· super" : ""} · ~${boxLb(b, 0.9)} lb</div>`).join("")}<div class="lid"></div></div>
           ${active ? `<div class="row" style="gap:6px"><button class="btn sm ghost" id="addBox">+ Box</button>${c.type === "nuc" ? `<button class="btn sm ghost" id="promote">Move into a full hive</button>` : ""}</div>` : ""}
@@ -314,13 +326,7 @@ screen("colony", {
           ${st ? `<div class="small" style="margin-top:4px">Stores now ~${st.lb} lb (${fmtShort(st.date)}) · winter target ~${winterTarget(c)} lb</div>` : ""}</div>
         <div class="card tap" id="queenCard"><div class="between"><b>Queen</b><span class="chev">›</span></div><div style="margin-top:4px;font-size:14px">${queenBadge(c.queen)}</div>
           <div class="small">${c.queen?.source ? "From: " + esc(c.queen.source) : ""}${c.queen?.since ? ` · since ${fmtShort(c.queen.since)}` : ""}</div></div>
-        ${active ? `<h2>What to expect</h2>${ns.map(n => needCard(n, true)).join("") || `<div class="small">Nothing flagged.</div>`}
-          ${cb ? `<div class="comeback"><div class="small">Come back</div><div class="big">${fmtD(cb.date)}</div><div class="small">${esc(cb.why)}</div></div>` : ""}
-          <h2>Do something</h2>
-          <button class="btn" data-nav="visitStart" data-p='{"id":"${c.id}"}'>📷 Start a visit</button>
-          <div class="chips" style="margin-top:10px">
-            ${(aiOn() ? [["aiplan", "🤖 Plan with AI"], ["ask", "💬 Ask"]] : []).concat([["mite", "🔬 Mite count"], ["feed", "🍯 Feed"], ["treat", "💊 Treat"], ["split", "✂️ Split"], ["combine", "🔗 Combine"], ["move", "🚚 Move"], ["share", "📤 Send a summary"], ["report", "🖨 Report"], ["sold", "🤝 Sold"], ["dead", "🕯 Dead-out"]]).map(([k, l]) => `<span class="chip" data-static="1" data-act="${k}">${l}</span>`).join("")}
-          </div>` : `<div class="note ${c.status === "dead" ? "risk" : ""}">${esc({ dead: "Dead-out", sold: "Sold", combined: "Combined" }[c.status])} on ${fmtD(c.end.date)}. ${esc(c.end.cause ? "Cause: " + c.end.cause.join(", ") : c.end.into ? "Into " + (col(c.end.into)?.name || "") : c.end.buyer ? "To " + c.end.buyer : "")}</div>`}
+
         <div class="small" style="margin-top:12px">${esc(yardOf(c.yardId)?.name)} · since ${fmtD(c.since, false)} · from: ${esc(c.origin?.kind)}${c.origin?.from ? ` (${esc(col(c.origin.from)?.name)})` : ""}</div>`;
     } else if (colonyTab === "logs") {
       const items = [
@@ -350,9 +356,9 @@ screen("colony", {
       const node = (x, d) => `<div class="node" style="--d:${d}">${x.id === c.id ? "<b>" : ""}${d ? "└ " : ""}${esc(x.name)}${x.id === c.id ? "</b>" : ""} <span class="small">${esc(x.origin?.kind || "")} · ${x.status === "active" ? "active" : x.status}</span></div>` + kids(x.id).map(k => node(k, d + 1)).join("");
       body = `<div class="card tree">${node(root, 0)}</div><div class="small">Splits record their parent, so you can see which lines do well and raise queens from your best stock.</div>`;
     }
-    return `<div class="row"><h1 class="grow">${esc(c.name)}</h1>${active ? `<button class="pen" id="rename">✎</button>` : ""}</div>
+    return `<div class="row"><h1 class="grow">${esc(c.name)}</h1>${active ? `<button class="pen" id="rename" aria-label="Rename ${esc(c.name)}">✎</button>` : ""}</div>
       <p class="sub">${esc(describeSetup(c))} · ${esc(yardOf(c.yardId)?.name)}</p>
-      <div class="tabs2">${tabs.map(([k, l]) => `<span data-ct="${k}" class="${k === colonyTab ? "on" : ""}">${l}</span>`).join("")}</div>${body}`;
+      <div class="tabs2" role="tablist">${tabs.map(([k, l]) => `<span data-ct="${k}" class="${k === colonyTab ? "on" : ""}" role="tab" tabindex="0" aria-selected="${k === colonyTab}">${l}</span>`).join("")}</div>${body}`;
   },
   mount(p, v) {
     const c = col(p.id); if (!c) return;
