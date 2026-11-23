@@ -66,18 +66,40 @@ function yardSheet(y, after) {
 document.addEventListener("click", e => { const b = e.target.closest("[data-yardloc]"); if (b) yardSheet(yardOf(b.dataset.yardloc)); });
 
 /* ---------- first run ---------- */
+/* Welcome illustration: honeycomb with a bee (drawn here, no image files) */
+const BEE_ART = (() => {
+  const hex = (cx, cy, r, fill) => `<polygon points="${[0, 1, 2, 3, 4, 5].map(i => { const a = Math.PI / 180 * (60 * i - 90); return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`; }).join(" ")}" fill="${fill}" stroke="#d98e04" stroke-width="2.5" stroke-linejoin="round"/>`;
+  const r = 25, w = r * Math.sqrt(3), cx = 92, cy = 110;
+  const cells = [[0, 0, "#f5ae1f"], [w, 0, "#ffd65c"], [-w, 0, "#fff3cf"], [w / 2, -1.5 * r, "#ffe9a8"], [-w / 2, -1.5 * r, "#ffd65c"], [w / 2, 1.5 * r, "#fff3cf"], [-w / 2, 1.5 * r, "#ffe9a8"]];
+  return `<svg class="welcome-art" viewBox="0 -4 210 196" role="img" aria-label="A bee over honeycomb">
+    <defs><clipPath id="beeBody"><ellipse cx="0" cy="0" rx="21" ry="14.5"/></clipPath></defs>
+    ${cells.map(([dx, dy, f]) => hex(cx + dx, cy + dy, r, f)).join("")}
+    <path d="M${cx - 5} ${cy + 2 * r - 1} q0 13 5 15 q5 -2 5 -15z" fill="#f5ae1f" stroke="#d98e04" stroke-width="1.5"/>
+    <path d="M60 60 C 90 20, 120 70, 150 40" fill="none" stroke="#b98a45" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round"/>
+    <g class="flybee"><g transform="translate(166 36) rotate(-12)">
+      <ellipse cx="-4" cy="-17" rx="11" ry="8" fill="#e9f4ff" fill-opacity=".9" stroke="#8fb7dc" stroke-width="1.5" transform="rotate(-25 -4 -17)"/>
+      <ellipse cx="8" cy="-16" rx="10" ry="7" fill="#e9f4ff" fill-opacity=".9" stroke="#8fb7dc" stroke-width="1.5" transform="rotate(20 8 -16)"/>
+      <path d="M20 0 l8 -2.5 l-8 -2.5z" fill="#2b1d0e" transform="translate(0 2.5)"/>
+      <ellipse cx="0" cy="0" rx="21" ry="14.5" fill="#ffc93c"/>
+      <g clip-path="url(#beeBody)" fill="#2b1d0e"><rect x="-7" y="-16" width="6" height="32"/><rect x="5" y="-16" width="6" height="32"/></g>
+      <ellipse cx="0" cy="0" rx="21" ry="14.5" fill="none" stroke="#2b1d0e" stroke-width="2.5"/>
+      <circle cx="-23" cy="-1" r="9.5" fill="#2b1d0e"/><circle cx="-26" cy="-3.5" r="2.4" fill="#fff"/>
+      <path d="M-27 -9 q-4 -10 -10 -11 M-22 -10 q0 -10 -5 -14" fill="none" stroke="#2b1d0e" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="-37" cy="-20" r="2.2" fill="#2b1d0e"/><circle cx="-27" cy="-24" r="2.2" fill="#2b1d0e"/>
+    </g></g></svg>`;
+})();
 screen("setup", {
   tab: "yard", notabs: true, title: "Welcome",
   render() {
-    return `<div style="text-align:center;font-size:54px;margin-top:20px">🐝</div>
-      <h1 style="text-align:center">Hive notes</h1>
+    return `${BEE_ART}
+      <h1 class="welcome-title">Hive <span>notes</span></h1>
       <p class="sub" style="text-align:center">Record each visit at the hive, and get what to expect and what to do next — from what you saw and the weather.</p>
       <div class="card small" style="color:var(--ink)">
         <b>How it works</b>
-        <div style="margin-top:6px">1. Add an apiary and set its location (for the forecast).</div>
-        <div>2. Add your hives and nucs.</div>
-        <div>3. At the hive, start a visit: photos of frames + a few taps.</div>
-        <div>4. It tells you what's coming and when to come back.</div>
+        <div class="steps"><div>Add an apiary and set its location (for the forecast).</div>
+        <div>Add your hives and nucs.</div>
+        <div>At the hive, start a visit: photos of frames and a few taps.</div>
+        <div>It tells you what's coming and when to come back.</div></div>
       </div>
       <div class="note">🔒 Your records stay on this phone. Nothing is uploaded unless you use the AI helper, and then only that colony's record. Back up from More now and then.</div>
       <button class="btn" id="start">Add your first apiary</button>
@@ -135,13 +157,14 @@ screen("yard", {
     const y = yardOf(db.settings.currentYard), cs = activeIn(y.id), m = monthOf(TODAY);
     const ended = db.colonies.filter(c => c.status !== "active").length, nt = notifications().on, adv = openAdvice(todayWx(y.id));
     return `
-      <div class="row" style="justify-content:flex-end;margin-bottom:4px"><span class="bell" data-nav="inbox">🔔${nt.length ? `<i>${nt.length}</i>` : ""}</span></div>
       ${db.yards.length > 1 ? `<div class="seg">${db.yards.map(x => `<span data-yard="${x.id}" class="${x.id === y.id ? "on" : ""}">${esc(x.name)}</span>`).join("")}</div>` : ""}
-      <div class="row"><h1 class="grow">${esc(y.name)}</h1><button class="pen" data-yardedit="${y.id}">✎</button></div>
-      <p class="sub">${cs.length} ${cs.length === 1 ? "colony" : "colonies"} · ${fmtD(TODAY)} · ${esc(seasonFor(m).name)}</p>
+      <div class="hero">
+        <div class="row"><h1 class="grow">${esc(y.name)}</h1><button class="pen" data-yardedit="${y.id}" aria-label="Edit apiary">✎</button><span class="bell" data-nav="inbox" aria-label="Alerts">🔔${nt.length ? `<i>${nt.length}</i>` : ""}</span></div>
+        <p class="sub">${cs.length} ${cs.length === 1 ? "colony" : "colonies"} · ${fmtD(TODAY)} · ${esc(seasonFor(m).name)}</p>
+        ${forecastStrip(y.id)}
+        ${todayWx(y.id) ? `<div class="small" style="margin:0 0 2px">Today: <b>${esc(adv.short)}</b>${adv.window ? ` · best ${esc(adv.window)}` : ""}</div>` : ""}
+      </div>
       ${y.signal === "none" ? `<div class="note warn">⚑ No cell signal at this apiary. Everything still saves on your phone; open the app at home first so the forecast is fresh.</div>` : ""}
-      ${forecastStrip(y.id)}
-      ${todayWx(y.id) ? `<div class="small" style="margin:-2px 0 8px">Today: <b>${esc(adv.short)}</b>${adv.window ? ` · best ${esc(adv.window)}` : ""}</div>` : ""}
       ${yardAlerts(y.id).map(a => `<div class="note ${a.icon === "⚠️" ? "warn" : ""}">${a.icon} ${esc(a.text)}</div>`).join("")}
       <div class="small" style="margin:4px 0 8px">🌼 ${esc(flowFor(m).text)}${y.forage ? ` · ${esc(y.forage)}` : ""}</div>
       <div class="row" style="gap:6px"><button class="btn sm dark" data-nav="yardrun">🧺 Packing list</button><button class="btn sm ghost" id="swarmBtn">🐝 Swarm caught</button></div>

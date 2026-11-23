@@ -1,0 +1,173 @@
+/* ============================================================
+   Bee theme — layered over app.css. Honey, wax and propolis colours,
+   a honeycomb background, rounded type, and a few bee touches.
+   ============================================================ */
+:root {
+  --ink: #2b1d0e;            /* propolis brown */
+  --muted: #7a6548;
+  --paper: #fff7e6;          /* beeswax cream */
+  --card: #fffdf7;
+  --line: #f0dfb8;
+  --honey: #d48806;          /* links, outlines */
+  --honey-deep: #8a5200;     /* text on cream: readable */
+  --honey-bright: #ffc93c;   /* bee yellow */
+  --honey-soft: #fff0c4;
+  --comb: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='45'%3E%3Cpath d='M0,-15 L13,-7.5 L13,7.5 L0,15 L-13,7.5 L-13,-7.5Z M26,-15 L39,-7.5 L39,7.5 L26,15 L13,7.5 L13,-7.5Z M13,7.5 L26,15 L26,30 L13,37.5 L0,30 L0,15Z M0,30 L13,37.5 L13,52.5 L0,60 L-13,52.5 L-13,37.5Z M26,30 L39,37.5 L39,52.5 L26,60 L13,52.5 L13,37.5Z' fill='none' stroke='%23D98E04' stroke-opacity='.12' stroke-width='1.2'/%3E%3C/svg%3E");
+  --comb-hero: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='45'%3E%3Cpath d='M0,-15 L13,-7.5 L13,7.5 L0,15 L-13,7.5 L-13,-7.5Z M26,-15 L39,-7.5 L39,7.5 L26,15 L13,7.5 L13,-7.5Z M13,7.5 L26,15 L26,30 L13,37.5 L0,30 L0,15Z M0,30 L13,37.5 L13,52.5 L0,60 L-13,52.5 L-13,37.5Z M26,30 L39,37.5 L39,52.5 L26,60 L13,52.5 L13,37.5Z' fill='none' stroke='%237a4a00' stroke-opacity='.10' stroke-width='1.2'/%3E%3C/svg%3E");
+  --round: ui-rounded, "SF Pro Rounded", "Nunito", -apple-system, system-ui, sans-serif;
+  --shadow: 0 1px 0 #fff inset, 0 6px 18px rgba(138, 82, 0, .08);
+}
+body { background-color: #f6dfa4; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='45'%3E%3Cpath d='M0,-15 L13,-7.5 L13,7.5 L0,15 L-13,7.5 L-13,-7.5Z M26,-15 L39,-7.5 L39,7.5 L26,15 L13,7.5 L13,-7.5Z M13,7.5 L26,15 L26,30 L13,37.5 L0,30 L0,15Z M0,30 L13,37.5 L13,52.5 L0,60 L-13,52.5 L-13,37.5Z M26,30 L39,37.5 L39,52.5 L26,60 L13,52.5 L13,37.5Z' fill='none' stroke='%238a5200' stroke-opacity='.14' stroke-width='1.4'/%3E%3C/svg%3E"); }
+.tag { background: #fffbefcc; color: #5a4220; }
+.phone { background-color: var(--paper); background-image: var(--comb); border-color: #2b1d0e; box-shadow: 0 30px 70px rgba(80, 45, 0, .35); }
+
+/* ---------- type ---------- */
+h1, h2, h3, .btn, .fab, .tabbar, .comeback .big, .stat b, .day b, .pill, .seg span, .tabs2 span, .chip { font-family: var(--round); }
+h1 { font-size: 27px; font-weight: 800; letter-spacing: -0.4px; }
+h2 { font-size: 17px; font-weight: 750; display: flex; align-items: center; gap: 8px; margin-top: 22px; }
+h2::before { content: ""; width: 12px; height: 13px; flex: 0 0 12px; background: linear-gradient(160deg, var(--honey-bright), #f0a20e);
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+.sub { color: var(--muted); }
+
+/* ---------- cards ---------- */
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
+.card.tap { transition: transform .12s, box-shadow .12s, border-color .12s; }
+.card.tap:hover { border-color: var(--honey-bright); box-shadow: 0 1px 0 #fff inset, 0 10px 24px rgba(138, 82, 0, .14); }
+.card.tap:active { transform: scale(.985); }
+.chev { color: var(--honey); }
+
+/* ---------- buttons: bee yellow with dark text (high contrast outdoors) ---------- */
+.btn { background: linear-gradient(180deg, #ffd65c, #f5ae1f); color: var(--ink); border-radius: 16px; font-weight: 800;
+  box-shadow: 0 3px 0 #c98300, 0 8px 18px rgba(212, 136, 6, .28); transition: transform .08s, box-shadow .08s; }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #c98300, 0 4px 10px rgba(212, 136, 6, .25); }
+.btn:disabled { opacity: .6; }
+.btn.ghost { background: #fffaf0; color: var(--honey-deep); border: 1.5px solid #e9b44a; box-shadow: 0 2px 0 #f0d79c; }
+.btn.dark { background: linear-gradient(180deg, #3d2a14, #2b1d0e); color: var(--honey-bright); box-shadow: 0 3px 0 #120b04, 0 8px 18px rgba(43, 29, 14, .25); }
+.btn.danger { background: #fffaf0; box-shadow: none; }
+.btn.sm { border-radius: 12px; }
+.link, .back, .whybtn, .pen { color: var(--honey-deep); }
+.back { font-weight: 600; }
+
+/* ---------- chips, toggles, segmented controls ---------- */
+.chip { background: #fffdf7; border-color: var(--line); font-weight: 550; transition: background .1s; }
+.chip.on { background: var(--honey-bright); border-color: #e5a20f; color: var(--ink); font-weight: 700; box-shadow: 0 2px 0 #e0a01a; }
+.toggle.on .sw { background: #f0a20e; }
+.seg { background: #f6e6bf; }
+.seg span.on { background: var(--card); color: var(--ink); }
+.tabs2 span { background: #f6e6bf; color: #5a4220; font-weight: 600; }
+.tabs2 span.on { background: var(--ink); color: var(--honey-bright); }
+input, select, textarea { background: #fffefb; border-color: var(--line); border-radius: 14px; }
+input:focus, select:focus, textarea:focus { border-color: #f0a20e; box-shadow: 0 0 0 3px #ffc93c55; }
+
+/* ---------- apiary header: a honey card with comb ---------- */
+.hero { position: relative; margin: 2px -6px 12px; padding: 14px 14px 10px; border-radius: 24px; overflow: hidden;
+  background-image: var(--comb-hero), linear-gradient(155deg, #ffdf7e 0%, #ffc642 45%, #f2a516 100%);
+  box-shadow: 0 10px 26px rgba(212, 136, 6, .30); color: var(--ink); }
+.hero h1 { margin-top: 0; }
+.hero .sub { color: #5a3b0c; margin-bottom: 10px; font-weight: 550; }
+.hero .pen { color: #5a3b0c; }
+.hero .bell { background: #fffbeecc; border-color: transparent; }
+.hero .forecast { margin: 0 -2px 2px; padding-left: 2px; }
+.hero .day { background: #fffbeed9; border-color: transparent; box-shadow: 0 2px 6px rgba(120, 70, 0, .12); }
+.hero .day.good { background: #fffdf5; box-shadow: 0 0 0 2px #2b1d0e22, 0 2px 6px rgba(120, 70, 0, .12); }
+.hero .day.cold { background: #e6f0fa; }
+.hero .small { color: #4a3008; }
+
+/* forecast tiles everywhere */
+.day { border-radius: 14px; padding: 7px 0 6px; font-weight: 550; }
+.day b { font-weight: 800; }
+.day.good { border-color: #f0c35a; background: #fff6d8; }
+
+/* ---------- notes, "come back", toast, sheets ---------- */
+.note { border-radius: 14px; }
+.comeback { background: linear-gradient(160deg, #3d2a14, #24170a); border-radius: 18px; position: relative; overflow: hidden; padding-left: 20px; }
+.comeback::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 7px;
+  background: repeating-linear-gradient(180deg, var(--honey-bright) 0 10px, #24170a 10px 18px); }
+.comeback .big { color: var(--honey-bright); font-weight: 800; }
+.toast { background: #2b1d0e; color: #fff7e6; border: 1px solid #ffc93c66; box-shadow: 0 10px 24px rgba(0, 0, 0, .25); font-weight: 600; }
+.sheet { background-color: var(--card); background-image: var(--comb); border-radius: 26px 26px 0 0; padding-top: 22px; box-shadow: 0 -10px 30px rgba(0, 0, 0, .15); }
+.sheet::before { content: ""; position: absolute; left: 50%; top: 8px; width: 42px; height: 5px; margin-left: -21px; border-radius: 9px; background: #e8d3a2; }
+.scrim { background: rgba(43, 29, 14, .45); }
+.why { border-top-color: var(--line); }
+.newbie { background: var(--honey-soft); }
+
+/* ---------- floating "Start a visit" ---------- */
+.fab { background: linear-gradient(180deg, #3d2a14, #2b1d0e); color: var(--honey-bright); border: 2px solid var(--honey-bright);
+  box-shadow: 0 10px 24px rgba(43, 29, 14, .35); font-weight: 800; letter-spacing: .1px; }
+.fab:active { transform: scale(.97); }
+
+/* ---------- tab bar: active tab sits in a honey cell ---------- */
+.tabbar { background: #fffaf0ee; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-top: 1px solid var(--line); font-weight: 600; }
+.tabbar div { position: relative; }
+.tabbar .ic { width: 38px; height: 34px; margin: 0 auto 1px; display: flex; align-items: center; justify-content: center; }
+.tabbar .act { color: var(--honey-deep); font-weight: 800; }
+.tabbar .act .ic { background: linear-gradient(160deg, #ffe07f, #ffc23a); clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0 50%); }
+
+/* ---------- hive diagram: wooden boxes, metal lid ---------- */
+.boxv { background: linear-gradient(180deg, #f6dca0, #e9c070); border: 1.5px solid #a8783a; border-radius: 5px; color: #4f3512; font-weight: 600; position: relative; }
+.boxv::after { content: ""; position: absolute; right: 12px; top: 50%; width: 22px; height: 5px; margin-top: -2px; border-radius: 4px; background: #b98a45; opacity: .6; }
+.lid { background: linear-gradient(180deg, #c9cdd1, #8e959b); }
+.stand { background: linear-gradient(180deg, #7a5530, #5b3d1f); }
+
+/* ---------- pills ---------- */
+.pill { font-weight: 700; }
+.pill.grey { background: #f3e7cb; color: #6d5733; }
+
+/* ---------- welcome ---------- */
+.welcome-art { display: block; width: 210px; height: 196px; margin: 14px auto 0; }
+.welcome-art .flybee { animation: hover 3s ease-in-out infinite; transform-origin: center; }
+.welcome-title { text-align: center; font-size: 32px; margin: 4px 0 6px; }
+.welcome-title span { color: #d48806; }
+.steps { counter-reset: st; }
+.steps div { counter-increment: st; display: flex; gap: 10px; align-items: flex-start; margin-top: 8px; }
+.steps div::before { content: counter(st); flex: 0 0 24px; height: 26px; display: flex; align-items: center; justify-content: center; font: 800 13px var(--round);
+  background: var(--honey-bright); color: var(--ink); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+
+/* ---------- AI: a bee buzzes while it thinks ---------- */
+.spin { border: 0; width: 22px; height: 22px; animation: none; display: inline-flex; align-items: center; justify-content: center; }
+.spin::before { content: "🐝"; font-size: 18px; display: inline-block; animation: buzz .9s ease-in-out infinite; }
+@keyframes buzz { 0%, 100% { transform: translate(0, 0) rotate(-8deg); } 25% { transform: translate(3px, -3px) rotate(6deg); } 50% { transform: translate(0, -1px) rotate(-4deg); } 75% { transform: translate(-3px, -3px) rotate(8deg); } }
+@keyframes hover { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-5px) rotate(3deg); } }
+.aitest.good { background: #eaf5e0; color: #2f6b1f; }
+
+/* ---------- dark screen (battery saver) ---------- */
+.phone.dark { --ink: #f6ead2; --muted: #b8a37f; --paper: #120d07; --card: #1f170d; --line: #3d2e19; --honey-deep: #ffc93c; --honey-soft: #3a2a0f;
+  --comb: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='45'%3E%3Cpath d='M0,-15 L13,-7.5 L13,7.5 L0,15 L-13,7.5 L-13,-7.5Z M26,-15 L39,-7.5 L39,7.5 L26,15 L13,7.5 L13,-7.5Z M13,7.5 L26,15 L26,30 L13,37.5 L0,30 L0,15Z M0,30 L13,37.5 L13,52.5 L0,60 L-13,52.5 L-13,37.5Z M26,30 L39,37.5 L39,52.5 L26,60 L13,52.5 L13,37.5Z' fill='none' stroke='%23FFC93C' stroke-opacity='.05' stroke-width='1.2'/%3E%3C/svg%3E"); background-color: var(--paper); }
+.phone.dark .card { box-shadow: none; }
+.phone.dark .btn.ghost, .phone.dark .btn.danger { background: transparent; box-shadow: none; }
+.phone.dark .chip { background: #1f170d; }
+.phone.dark .chip.on { background: var(--honey-bright); color: #2b1d0e; border-color: var(--honey-bright); }
+.phone.dark .hero { background-image: var(--comb), linear-gradient(155deg, #4a3208, #2a1c06); box-shadow: none; color: var(--ink); }
+.phone.dark .hero .sub, .phone.dark .hero .small, .phone.dark .hero .pen { color: #e8cf98; }
+.phone.dark .hero .day { background: #1f170d; color: var(--ink); }
+.phone.dark .tabbar { background: #160f08; }
+.phone.dark .tabbar .act .ic { background: #4a3208; }
+.phone.dark .tabs2 span, .phone.dark .seg { background: #2a1f12; color: var(--muted); }
+.phone.dark .seg span.on { background: #3d2e19; color: var(--ink); }
+.phone.dark .sheet { background-color: var(--card); }
+.phone.dark .boxv { background: linear-gradient(180deg, #5a4120, #463117); color: #f6ead2; border-color: #7a5530; }
+.phone.dark .day.good { background: #2a1f0c; border-color: #6b4c12; }
+
+/* ---------- field mode: bigger and higher contrast ---------- */
+.phone.field .btn.ghost { border-width: 2px; }
+.phone.field .chip { border-width: 1.5px; border-color: #c9a85e; }
+
+@media (max-width: 520px), (display-mode: standalone) {
+  body { background-color: var(--paper); background-image: none; }
+  .phone { background-image: var(--comb); }
+}
+.forecast, .hours, .tabs2 { scrollbar-width: none; }
+.forecast::-webkit-scrollbar, .hours::-webkit-scrollbar, .tabs2::-webkit-scrollbar { display: none; }
+/* advice cards keep their coloured edge; room at the bottom so the floating button never covers the last row */
+.card.expect { border-left: 5px solid var(--line); }
+.card.expect.risk { border-left-color: var(--risk); }
+.card.expect.warn { border-left-color: #e08a00; }
+.card.expect.ok { border-left-color: var(--ok); }
+.card.expect.info { border-left-color: var(--sky); }
+#view { padding-bottom: 96px; }
+#view.notabs { padding-bottom: 40px; }
+/* camera box: dark comb, like looking into the hive */
+.camshot { background-color: #2b1d0e; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='45'%3E%3Cpath d='M0,-15 L13,-7.5 L13,7.5 L0,15 L-13,7.5 L-13,-7.5Z M26,-15 L39,-7.5 L39,7.5 L26,15 L13,7.5 L13,-7.5Z M13,7.5 L26,15 L26,30 L13,37.5 L0,30 L0,15Z M0,30 L13,37.5 L13,52.5 L0,60 L-13,52.5 L-13,37.5Z M26,30 L39,37.5 L39,52.5 L26,60 L13,52.5 L13,37.5Z' fill='none' stroke='%23FFC93C' stroke-opacity='.10' stroke-width='1.2'/%3E%3C/svg%3E"); color: #ffe3a1; border: 2px dashed #ffc93c55; }
+.camshot span { font-size: 16px; font-family: var(--round); font-weight: 700; }
+.phone.dark .hero .bell { background: #2a1f12; color: var(--ink); }
+.phone.dark .btn.dark { border: 1.5px solid #ffc93c66; }
