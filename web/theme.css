@@ -202,3 +202,20 @@ button.bell { font: inherit; color: inherit; min-width: 44px; min-height: 36px; 
 .back { padding: 10px 8px 8px 0; min-height: 44px; }
 .pen { min-width: 40px; min-height: 40px; }
 .tabbar div:focus-visible, .tabs2 span:focus-visible { outline: 3px solid #f0a20e; border-radius: 10px; }
+
+/* ---------- field-test fixes (23 Nov) ---------- */
+/* dark screen: notes were dark text on dark tints (freeze alert, "Good to open") */
+.phone.dark .note { background: #16283a; color: #d4e7fa; }
+.phone.dark .note.warn { background: #3a2508; color: #ffd9a0; }
+.phone.dark .note.risk { background: #3b1410; color: #ffc0b6; }
+.phone.dark .note.ok { background: #18300f; color: #cdeebd; }
+.phone.dark .note b { color: inherit; }
+/* apiary sheet: required name, clear location result */
+.lbl .req { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-left: 4px; }
+input.missing { border-color: #c0392b !important; box-shadow: 0 0 0 3px #c0392b33; }
+.locnow { font-size: 13.5px; color: var(--muted); margin: 2px 0 6px; }
+.locnow.ok { color: #2f6b1e; font-weight: 700; }
+.phone.dark .locnow.ok { color: #a8e08f; }
+/* voice notes: an obvious stop button while listening */
+.btn.listening { background: #c0392b !important; color: #fff !important; border-color: #c0392b !important; font-size: 16px; padding: 14px 18px; animation: listenPulse 1.4s ease-in-out infinite; }
+@keyframes listenPulse { 50% { box-shadow: 0 0 0 8px #c0392b33; } }

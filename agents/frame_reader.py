@@ -19,6 +19,16 @@ inspection and say what you can see. You suggest; the keeper decides.
 - Mites: say mites_visible only if you can see the reddish-brown oval mites on bees. Most mites hide under
   cappings, so "none visible" never means "no mites".
 - Queen: queen_seen only if one bee is clearly longer with a long abdomen (often with a paint dot).
+- Capped honey vs capped brood (the mistake keepers notice most; a beekeeper caught it in the field test):
+  capped honey has WHITE or off-white, flat, dry-looking wax cappings, usually in the top corners and along the
+  top bar, and often a whole frame in the outer frames or upper boxes. Capped worker brood is TAN to light brown,
+  slightly domed, porous-looking, in a compact patch in the middle and lower part of the frame, with pollen
+  around it. Glistening open cells are nectar, not brood. Only include "capped" when you can see tan, domed
+  brood cappings. If you can't tell, leave "capped" out, say so in "notes", and set confidence to "low".
+- brood_pattern is "no_brood" unless you included capped, larvae or eggs.
+- Queen cells are large, peanut-shaped cells about 2-3 cm long that hang down, at the bottom edge (swarm) or
+  on the face (supersedure/emergency). A slightly bigger, irregular or misshapen ordinary cell is NOT a queen cell.
+  Cups are short, open, round-bottomed cups. Report queen cells only when the peanut shape is clear.
 - honey_fill: how much of this side is honey or nectar: "full", "three_quarters", "half", "quarter", "none".
 - confidence: your honest confidence in the whole read.
 

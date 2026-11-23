@@ -21,7 +21,7 @@ function conditionsNow(yardId) {
 function newDraft(c, type) {
   const k = conditionsNow(c.yardId);
   db.drafts.visit = { id: uid("v"), colonyId: c.id, type, date: TODAY, time: nowTime(), temp: k.temp, sky: k.sky, wind: k.wind, wxSrc: k.src,
-    by: "Me", frames: {}, hive: null, taps: {}, voice: "", offline: !navigator.onLine };
+    by: "Me", frames: {}, hive: null, taps: {}, voice: "", offline: !navigator.onLine, at: Date.now() };
   saveDb();
 }
 // Drop a draft and any photos it took
@@ -75,6 +75,9 @@ screen("visitStart", {
 
 /* ---------- frame by frame: the phone's camera + a few taps per frame ---------- */
 let camMode = "frame", camBox = 0, camFrame = 1, camFor = null;
+// "Top box", "Bottom box", "Middle box": what a keeper calls them (Box 1 is the bottom one in the data)
+const frameLabel = (c, bi, fi) => c.boxes.length === 1 ? `F${fi}` : c.boxes.length > 3 ? `B${bi + 1} F${fi}` : `${boxName(c, bi).split(" ")[0]} F${fi}`;
+const boxName = (c, i) => c.boxes.length === 1 ? "The box" : i === c.boxes.length - 1 ? "Top box" : i === 0 ? "Bottom box" : c.boxes.length === 3 ? "Middle box" : `Box ${i + 1} from the bottom`;
 const frameCap = b => (FULL_LB[b.depth] - EMPTY_LB[b.depth]) / 10;   // lb of honey in one full frame
 const SEES = [["capped", "Capped brood"], ["larvae", "Open brood / larvae"], ["eggs", "Eggs"], ["honey", "Honey"], ["nectar", "Nectar"], ["pollen", "Pollen"], ["empty", "Empty comb"], ["foundation", "Undrawn"], ["drone", "Drone brood"]];
 function frameFrom(sel) {
@@ -113,8 +116,9 @@ screen("visitCam", {
         <button class="btn" id="saveFront">Save front → frames</button><button class="btn ghost" data-back>Back</button>`;
     }
     return `<div class="seg" id="mode"><span data-m="frame" class="on">Frame by frame</span><span data-m="hive">Front of the hive</span></div>
-      <div class="tabs2">${c.boxes.map((x, i) => `<span data-bx="${i}" class="${i === camBox ? "on" : ""}">Box ${i + 1} · ${x.depth}${i === c.boxes.length - 1 ? " (top)" : i === 0 ? " (bottom)" : ""}</span>`).join("")}</div>
-      <div class="between"><h1 style="font-size:21px;margin:4px 0">Box ${camBox + 1} · Frame ${camFrame} of ${b.frames}</h1><span>${camFrame > 1 ? `<button class="btn sm ghost" id="prevF">‹</button>` : ""}<button class="btn sm ghost" id="nextF">›</button></span></div>
+      ${n ? "" : `<div class="small" style="margin:2px 0 8px">Open the hive first. For each frame you lift out, tap what you see (a photo is optional). Only record the frames you pull; one box is fine.</div>`}
+      ${c.boxes.length > 1 ? `<div class="tabs2">${c.boxes.map((x, i) => ({ x, i })).reverse().map(({ x, i }) => `<span data-bx="${i}" class="${i === camBox ? "on" : ""}">${boxName(c, i)} · ${x.depth}</span>`).join("")}</div>` : ""}
+      <div class="between"><h1 style="font-size:21px;margin:4px 0">${boxName(c, camBox)} · Frame ${camFrame} <span class="small">of ${b.frames}</span></h1><span>${camFrame > 1 ? `<button class="btn sm ghost" id="prevF" aria-label="Previous frame">‹</button>` : ""}<button class="btn sm ghost" id="nextF" aria-label="Next frame (keeps what you tapped)">›</button></span></div>
       ${shot}
       ${photo && d.pending && aiOn() ? `<button class="btn sm dark" id="aiRead">🤖 Read this photo</button>` : ""}
       ${d.aiRead && d.aiRead.key === d.pending ? `<div class="note">🤖 AI suggested the taps below (${esc(d.aiRead.confidence || "?")} confidence)${d.aiRead.problem ? ` — ${esc(d.aiRead.problem)}` : ""}. Check them before saving.${usageLine(d.aiRead.usage)}</div>` : `<div class="small" style="margin:6px 0 12px">Photo optional. The taps below are what count; with a photo, the AI can suggest them.</div>`}
@@ -124,10 +128,10 @@ screen("visitCam", {
       <div class="q"><div class="lbl">Also</div>${chips("also", [["queen", "👑 Saw the queen"], ["mites", "Mites on bees"], ["dwv", "Deformed wings"]], [sel.queen && "queen", sel.mites && "mites", sel.dwv && "dwv"].filter(Boolean), true)}</div>
       <div class="q"><div class="lbl">Queen cells</div>${chips("cells", [["none", "None"], ["cups", "Empty cups"], ["swarm", "Swarm (bottom edge)"], ["super", "Supersedure (face)"], ["emerg", "Emergency"]], sel.cells || "none", false, true)}</div>
       <button class="btn" id="saveF">Save frame ${camFrame} → next</button>
-      <h2>Recorded this visit <span class="small">· ${n} of ${total} frames${d.hive ? " + front" : ""}</span></h2>
+      <h2>Recorded this visit <span class="small">· ${n} ${n === 1 ? "frame" : "frames"}${d.hive ? " + front" : ""}</span></h2>
       <div class="card log">${d.hive ? `<div class="ln"><span class="thumb hive"></span><span class="fno">Front</span><span>${esc(d.hive.text)}</span></div>` : ""}
-        ${Object.entries(d.frames).sort(byFrame).map(([k, x]) => { const [bi, fi] = k.split("-"); return `<div class="ln" data-goto="${k}"><span class="thumb ${x.kind}">${x.queen ? '<span class="q">👑</span>' : ""}</span><span class="fno">B${+bi + 1}·F${fi}</span><span class="grow">${esc(x.text)}</span>${x.photo ? "📷" : ""}</div>`; }).join("") || (d.hive ? "" : `<span class="small">Nothing yet.</span>`)}</div>
-      <button class="btn ghost" id="skipBox">Done with this box → next one down</button>
+        ${Object.entries(d.frames).sort(byFrame).map(([k, x]) => { const [bi, fi] = k.split("-"); return `<div class="ln" data-goto="${k}"><span class="thumb ${x.kind}">${x.queen ? '<span class="q">👑</span>' : ""}</span><span class="fno">${frameLabel(c, +bi, fi)}</span><span class="grow">${esc(x.text)}</span>${x.photo ? "📷" : ""}</div>`; }).join("") || (d.hive ? "" : `<span class="small">Nothing yet.</span>`)}</div>
+      ${camBox > 0 ? `<button class="btn ghost" id="skipBox">Done with the ${boxName(c, camBox).toLowerCase()} → next one down</button>` : ""}
       <button class="btn dark" id="doneFrames">Done with frames</button>
       <button class="btn danger" id="cancelV">Cancel visit</button>`;
   },
@@ -150,6 +154,18 @@ screen("visitCam", {
     };
     v.querySelector("#aiRead")?.addEventListener("click", () => frameReadInto(d, rerender));
     const goTo = (bi, fi) => { d.sel = null; if (d.pending) { photoDel(d.pending); d.pending = null; } camBox = bi; camFrame = fi; saveDb(); render(); };
+    // Field test: two frames (photos + AI taps) were lost because › and "Done with frames" didn't save them.
+    // Now anything tapped or photographed on this frame is kept whenever you leave it.
+    const keepCurrent = () => {
+      read();
+      if (!d.sel.sees.length && !d.sel.queen && !d.pending) return false;
+      const key = `${camBox}-${camFrame}`, old = d.frames[key]?.photo, fr = frameFrom(d.sel);
+      fr.photo = d.pending || old || null; if (d.pending && old && old !== d.pending) photoDel(old);
+      fr.lb = +(fr.honey * frameCap(c.boxes[camBox])).toFixed(1);
+      if (d.aiRead && d.aiRead.key === d.pending) fr.ai = { confidence: d.aiRead.confidence, suggested: true };
+      d.frames[key] = fr; d.pending = null; saveDb(); return true;
+    };
+    const leaveTo = (bi, fi) => { keepCurrent(); goTo(bi, fi); };
     if (camMode === "hive") {
       v.querySelector("#saveFront").onclick = () => {
         const traffic = chipVal(v, "traffic"), front = chipVals(v, "front");
@@ -162,26 +178,21 @@ screen("visitCam", {
       return;
     }
     v.querySelectorAll(".chips").forEach(g => g.addEventListener("change", () => { read(); saveDb(); rerender(); }));
-    v.querySelectorAll("[data-bx]").forEach(s => s.onclick = () => goTo(+s.dataset.bx, 1));
-    v.querySelectorAll("[data-goto]").forEach(s => s.onclick = () => { const [bi, fi] = s.dataset.goto.split("-").map(Number); goTo(bi, fi); });
-    v.querySelector("#prevF")?.addEventListener("click", () => goTo(camBox, camFrame - 1));
+    v.querySelectorAll("[data-bx]").forEach(s => s.onclick = () => leaveTo(+s.dataset.bx, 1));
+    v.querySelectorAll("[data-goto]").forEach(s => s.onclick = () => { const [bi, fi] = s.dataset.goto.split("-").map(Number); leaveTo(bi, fi); });
+    v.querySelector("#prevF")?.addEventListener("click", () => leaveTo(camBox, camFrame - 1));
     const advance = () => {
       if (camFrame < c.boxes[camBox].frames) goTo(camBox, camFrame + 1);
-      else if (camBox > 0) { toast(`Box ${camBox + 1} done → Box ${camBox}`); goTo(camBox - 1, 1); }
+      else if (camBox > 0) { toast(`${boxName(c, camBox)} done → ${boxName(c, camBox - 1).toLowerCase()}`); goTo(camBox - 1, 1); }
       else { toast("All frames done"); goTo(camBox, camFrame); }
     };
-    v.querySelector("#nextF").onclick = advance;
+    v.querySelector("#nextF").onclick = () => { if (keepCurrent()) toast(`Frame ${camFrame} saved`); advance(); };
     v.querySelector("#saveF").onclick = () => {
-      read();
-      if (!d.sel.sees.length && !d.sel.queen && !d.pending) { toast("Tap what's on the frame (or › to skip it)"); return; }
-      const key = `${camBox}-${camFrame}`, old = d.frames[key]?.photo, fr = frameFrom(d.sel);
-      fr.photo = d.pending || old || null; if (d.pending && old && old !== d.pending) photoDel(old);
-      fr.lb = +(fr.honey * frameCap(c.boxes[camBox])).toFixed(1);
-      if (d.aiRead && d.aiRead.key === d.pending) fr.ai = { confidence: d.aiRead.confidence, suggested: true };
-      d.frames[key] = fr; d.pending = null; saveDb(); advance();
+      if (!keepCurrent()) { toast("Tap what's on the frame (or › to skip it)"); return; }
+      advance();
     };
-    v.querySelector("#skipBox").onclick = () => { if (camBox > 0) goTo(camBox - 1, 1); else toast("That was the bottom box"); };
-    v.querySelector("#doneFrames").onclick = () => { if (d.pending) { photoDel(d.pending); d.pending = null; } d.sel = null; saveDb(); nav("visitTaps", { id: c.id }); };
+    v.querySelector("#skipBox")?.addEventListener("click", () => leaveTo(camBox - 1, 1));
+    v.querySelector("#doneFrames").onclick = () => { keepCurrent(); d.sel = null; saveDb(); nav("visitTaps", { id: c.id }); };
     v.querySelector("#cancelV").onclick = () => { if (!confirm("Cancel this visit? Its photos and taps are deleted.")) return; discardDraft(); camFor = null; back(); };
   }
 });
@@ -376,7 +387,7 @@ screen("visitRecord", {
     return `<h1>Visit record</h1><p class="sub">${esc(c.name)} · ${fmtD(v.date)}</p>
       <h2>Conditions <span class="src">● auto</span></h2><div class="card small" style="color:var(--ink)">${esc(v.time || "")}${v.temp != null ? ` · ${v.temp}°F · ${esc(v.sky || "")}${v.wind != null ? ` · wind ${v.wind} mph` : ""}${v.wxSrc === "forecast" ? " (from the day's forecast)" : ""}` : " · no weather recorded"}</div>
       ${fr.length || v.hive ? `<h2>Frames <span class="src">${fr.length} frames · ${photos} photo${photos === 1 ? "" : "s"}</span></h2>
-        <div class="card log">${v.hive ? `<div class="ln"><span class="thumb hive"></span><span class="fno">Front</span><span class="grow">${esc(v.hive.text || v.hive)}</span>${v.hive.photo ? `<img data-photo="${v.hive.photo}" class="mini" data-big="${v.hive.photo}"/>` : ""}</div>` : ""}${fr.map(([k, x]) => { const [bi, fi] = k.split("-"); return `<div class="ln"><span class="thumb ${x.kind}">${x.queen ? '<span class="q">👑</span>' : ""}</span><span class="fno">B${+bi + 1}·F${fi}</span><span class="grow">${esc(x.text)}</span>${x.photo ? `<img data-photo="${x.photo}" class="mini" data-big="${x.photo}"/>` : ""}</div>`; }).join("")}</div>
+        <div class="card log">${v.hive ? `<div class="ln"><span class="thumb hive"></span><span class="fno">Front</span><span class="grow">${esc(v.hive.text || v.hive)}</span>${v.hive.photo ? `<img data-photo="${v.hive.photo}" class="mini" data-big="${v.hive.photo}"/>` : ""}</div>` : ""}${fr.map(([k, x]) => { const [bi, fi] = k.split("-"); return `<div class="ln"><span class="thumb ${x.kind}">${x.queen ? '<span class="q">👑</span>' : ""}</span><span class="fno">${frameLabel(c, +bi, fi)}</span><span class="grow">${esc(x.text)}</span>${x.photo ? `<img data-photo="${x.photo}" class="mini" data-big="${x.photo}"/>` : ""}</div>`; }).join("")}</div>
         <h2>Frame map</h2><div class="card">${frameMap(c, v)}</div>` : ""}
       ${tapLines.length ? `<h2>Your taps <span class="src">✋</span></h2><div class="card small" style="color:var(--ink)">${tapLines.join("<br>")}</div>` : ""}
       ${v.note ? `<h2>Notes</h2><div class="card small" style="color:var(--ink)">“${esc(v.note)}”</div>` : ""}
@@ -396,15 +407,32 @@ screen("visitRecord", {
 
 /* ---------- talking instead of typing ---------- */
 const speechOK = () => !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+// Field test: "Listening…" stayed on with no words and the keeper couldn't stop it with gloves on.
+// Now: words show as they're heard, it stops by itself after 6 s of silence (or 60 s in all),
+// the whole button stops it, and if nothing was heard it says so and opens the keyboard (its 🎤 works everywhere).
 function dictate(box, btn, after) {
-  const R = window.SpeechRecognition || window.webkitSpeechRecognition; if (!R) return;
-  const r = new R(); r.lang = navigator.language || "en-US"; r.interimResults = false; r.continuous = false;
+  const R = window.SpeechRecognition || window.webkitSpeechRecognition; if (!R) { box.focus(); return; }
+  const r = new R(); r.lang = navigator.language || "en-US"; r.interimResults = true; r.continuous = true;
   const base = box.value ? box.value.replace(/\s*$/, " ") : "";
-  btn.textContent = "🎙 Listening… tap to stop"; btn.onclick = () => r.stop();
-  r.onresult = e => { box.value = base + [...e.results].map(x => x[0].transcript).join(" "); after && after(); };
-  r.onerror = e => toast(e.error === "not-allowed" ? "Microphone permission was refused" : "Didn't catch that — try the keyboard 🎤");
-  r.onend = () => { btn.textContent = "🎙 Talk"; btn.onclick = () => dictate(box, btn, after); };
-  try { r.start(); } catch (e) { toast("Voice isn't available here — use the keyboard 🎤"); }
+  let heard = false, quiet, ended = false;
+  const stop = () => { clearTimeout(quiet); try { r.stop(); } catch (e) { } setTimeout(() => !ended && r.onend(), 1500); };
+  const wait = ms => { clearTimeout(quiet); quiet = setTimeout(stop, ms); };
+  const hardStop = setTimeout(stop, 60000);
+  btn.textContent = "■ Stop listening"; btn.classList.add("listening"); btn.onclick = stop;
+  r.onresult = e => {
+    heard = true; wait(6000);
+    box.value = base + [...e.results].map(x => x[0].transcript).join(" ");
+    after && after();
+  };
+  r.onerror = e => { if (e.error === "not-allowed" || e.error === "service-not-allowed") toast("Microphone is blocked for this app. Use the 🎤 on the keyboard instead."); };
+  r.onend = () => {
+    if (ended) return; ended = true; clearTimeout(quiet); clearTimeout(hardStop);
+    btn.textContent = "🎙 Talk"; btn.classList.remove("listening"); btn.onclick = () => dictate(box, btn, after);
+    if (!heard) { toast("Didn't hear anything. Use the 🎤 on the keyboard instead."); box.focus(); }
+    else toast("Got it. Check the words before you save.");
+  };
+  wait(8000);   // nothing heard in 8 s: give up and hand over to the keyboard
+  try { r.start(); } catch (e) { ended = true; clearTimeout(quiet); clearTimeout(hardStop); btn.textContent = "🎙 Talk"; btn.classList.remove("listening"); btn.onclick = () => dictate(box, btn, after); toast("Voice isn't available here. Use the 🎤 on the keyboard."); box.focus(); }
 }
 
 // box, then frame number (so frame 10 comes after 9, not after 1)

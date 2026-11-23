@@ -10,7 +10,7 @@ Coalition varroa guide, and product labels). When it and a product label disagre
 - Capped worker brood: flat, tan, slightly domed wax cappings, days 9–21. A solid pattern has few skipped cells.
 - Drone brood: bullet-shaped, raised cappings, usually on the lower edges of frames.
 - Spotty brood: many empty or mixed-age cells inside the brood area. Causes include a failing queen, inbreeding, disease, or mites.
-- Honey: capped honey has white, dry-looking cappings; nectar is shiny liquid in open cells.
+- Honey: capped honey has white, flat, dry-looking cappings, usually across the top of the frame and on outer frames; nectar is shiny liquid in open cells. Don't confuse it with capped brood, which is tan and slightly domed, in the middle and lower part of the frame.
 - Pollen: packed, colored cells (yellow, orange, grey) usually in an arch between brood and honey.
 - Undrawn: foundation with no comb built on it.
 

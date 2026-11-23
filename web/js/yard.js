@@ -32,9 +32,9 @@ function yardSheet(y, after) {
   const loc = y?.lat != null ? { lat: y.lat, lon: y.lon, place: y.place || "" } : null;
   let pick = loc;
   sheet(`<h3>${y ? "Edit apiary" : "Add an apiary"}</h3>
-    <div class="q"><div class="lbl">Name</div><input id="nm" value="${esc(y?.name || "")}" placeholder="e.g. Home apiary, Back field"/></div>
+    <div class="q"><div class="lbl">Apiary name <span class="req">required</span></div><input id="nm" value="${esc(y?.name || "")}" placeholder="The place, e.g. Home apiary, Back field" autocomplete="off"/></div>
     <div class="q"><div class="lbl">Location (for the forecast)</div>
-      <div class="small" id="locNow">${pick ? `📍 ${esc(pick.place || `${pick.lat.toFixed(2)}, ${pick.lon.toFixed(2)}`)}` : "Not set"}</div>
+      <div class="locnow" id="locNow" role="status">${pick ? `✓ 📍 ${esc(pick.place || `${pick.lat.toFixed(2)}, ${pick.lon.toFixed(2)}`)}` : "Not set yet"}</div>
       <button class="btn sm dark" id="gps">📍 I'm standing in this apiary</button>
       <div class="row" style="margin-top:6px"><input id="town" placeholder="Or search a town or ZIP" style="margin:0"/><button class="btn sm ghost" id="find" style="margin:0">Find</button></div>
       <div id="hits"></div>
@@ -44,12 +44,19 @@ function yardSheet(y, after) {
     <div class="q"><div class="lbl">Forage notes</div><input id="for" value="${esc(y?.forage || "")}" placeholder="What blooms nearby"/></div>
     <div class="q"><div class="lbl">Planned pesticide spray nearby (optional)</div><input id="sprd" type="date" value="${esc(y?.spray?.date || "")}"/><input id="sprt" value="${esc(y?.spray?.text || "")}" placeholder="What you heard, e.g. orchard fall spray"/></div>
     <button class="btn" id="save">Save</button>${y && db.yards.length > 1 && !activeIn(y.id).length ? `<button class="btn danger" id="del">Delete this apiary</button>` : ""}<button class="btn ghost" data-close>Cancel</button>`, s => {
-    const show = () => { s.querySelector("#locNow").innerHTML = pick ? `📍 ${esc(pick.place || `${pick.lat.toFixed(2)}, ${pick.lon.toFixed(2)}`)}` : "Not set"; };
+    // Field test: "I'm standing at the location, why isn't it getting here" -> say clearly when it worked
+    const show = () => {
+      const el = s.querySelector("#locNow");
+      el.innerHTML = pick ? `✓ 📍 ${esc(pick.place || `${pick.lat.toFixed(2)}, ${pick.lon.toFixed(2)}`)}` : "Not set yet";
+      el.classList.toggle("ok", !!pick);
+      if (pick && pick.place === "Set at the apiary") s.querySelector("#gps").textContent = "✓ Location set from where you're standing";
+    };
+    show();
     s.querySelector("#gps").onclick = () => {
       if (!navigator.geolocation) { toast("This browser can't read location — search a town instead"); return; }
-      s.querySelector("#locNow").textContent = "Finding you…";
-      navigator.geolocation.getCurrentPosition(p => { pick = { lat: +p.coords.latitude.toFixed(2), lon: +p.coords.longitude.toFixed(2), place: "Set at the apiary" }; show(); },
-        err => { s.querySelector("#locNow").textContent = err.code === 1 ? "Location permission was refused — search a town instead." : "Couldn't get a fix — search a town instead."; }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
+      s.querySelector("#locNow").textContent = "Finding you… (allow location if the phone asks)"; s.querySelector("#gps").textContent = "📍 Finding you…";
+      navigator.geolocation.getCurrentPosition(p => { pick = { lat: +p.coords.latitude.toFixed(2), lon: +p.coords.longitude.toFixed(2), place: "Set at the apiary" }; show(); toast("Location set"); },
+        err => { s.querySelector("#gps").textContent = "📍 I'm standing in this apiary"; s.querySelector("#locNow").textContent = err.code === 1 ? "Location permission was refused — search a town instead." : "Couldn't get a fix — search a town instead."; }, { enableHighAccuracy: false, timeout: 15000, maximumAge: 600000 });
     };
     const find = async () => {
       const q = s.querySelector("#town").value.trim(); if (!q) return;
@@ -65,7 +72,8 @@ function yardSheet(y, after) {
     s.querySelector("[data-close]").onclick = closeSheet;
     s.querySelector("#del")?.addEventListener("click", () => { if (!confirm(`Delete ${y.name}?`)) return; db.yards = db.yards.filter(x => x.id !== y.id); delete db.weather[y.id]; db.settings.currentYard = db.yards[0]?.id || null; saveDb(); closeSheet(); render(); });
     s.querySelector("#save").onclick = () => {
-      const nm = s.querySelector("#nm").value.trim(); if (!nm) { toast("Give the apiary a name"); return; }
+      const nmEl = s.querySelector("#nm"), nm = nmEl.value.trim();
+      if (!nm) { toast("Give the apiary a name first"); nmEl.classList.add("missing"); nmEl.scrollIntoView({ block: "center", behavior: "smooth" }); nmEl.focus(); nmEl.oninput = () => nmEl.classList.remove("missing"); return; }
       const o = y || { id: uid("y") }, moved = pick && (!y || y.lat !== pick.lat || y.lon !== pick.lon);
       const sd = s.querySelector("#sprd").value;
       Object.assign(o, { name: nm, signal: chipVal(s, "sig"), access: s.querySelector("#acc").value, forage: s.querySelector("#for").value, spray: sd ? { date: sd, text: s.querySelector("#sprt").value.trim() } : null });
@@ -167,7 +175,8 @@ function addColonySheet(preset = {}) {
 
 screen("yard", {
   tab: "yard", title: () => yardOf(db.settings.currentYard)?.name || "Apiary",
-  fab: { label: "📷 Start a visit", onclick: () => startVisitPicker() },
+  // No Start-a-visit button on an apiary with no colonies (field test: it offered another apiary's hive)
+  fab: () => activeIn(db.settings.currentYard).length ? { label: "📷 Start a visit", onclick: () => startVisitPicker() } : null,
   render() {
     if (!yardOf(db.settings.currentYard)) { db.settings.currentYard = db.yards[0].id; saveDb(); }
     const y = yardOf(db.settings.currentYard), cs = activeIn(y.id), m = monthOf(TODAY);
@@ -180,18 +189,20 @@ screen("yard", {
         ${todayWx(y.id) ? `<div class="small" style="margin:0 0 2px">Today: <b>${esc(adv.short)}</b>${adv.window ? ` · best ${esc(adv.window)}` : ""}</div>` : ""}
       </div>
       ${y.signal === "none" ? `<div class="note warn">⚑ No cell signal at this apiary. Everything still saves on your phone; open the app at home first so the forecast is fresh.</div>` : ""}
+      ${(() => { const dv = db.drafts.visit, dc = dv && !dv.saved && col(dv.colonyId); return dc && dc.status === "active" ? `<div class="note warn"><b>Unfinished visit:</b> ${esc(dc.name)}, started ${dv.date === TODAY ? "today" : fmtD(dv.date)} at ${esc(dv.time || "")}.<div class="row" style="gap:8px;margin-top:8px"><button class="btn sm" id="dvGo" style="margin:0">Pick up where I left off</button><button class="btn sm ghost" id="dvDrop" style="margin:0">Discard it</button></div></div>` : ""; })()}
       ${yardAlerts(y.id).map(a => `<div class="note ${a.icon === "⚠️" ? "warn" : ""}">${a.icon} ${esc(a.text)}</div>`).join("")}
       <div class="between" style="margin:2px 0 4px"><span class="small grow">🌼 ${esc(flowFor(m).text)}${y.forage ? ` · ${esc(y.forage)}` : ""}</span><button class="btn sm ghost" data-nav="yardrun" style="margin:0;flex:0 0 auto">🧺 Packing list</button></div>
       ${aiOn() && cs.length ? `<button class="btn ghost twoline" id="yardTalk" style="margin-top:10px">🎙 Talk through the apiary<span class="btnsub">Say what you saw. The AI fills in each colony's record.</span></button>` : ""}
-      <h2>Colonies</h2>
-      ${cs.map(colonyCard).join("") || `<div class="small">No colonies here yet.</div>`}
-      <button class="btn ghost" id="addBtn">+ Add a hive or nuc</button>
+      <div class="between"><h2>Colonies</h2>${cs.length ? `<button class="btn sm ghost" id="addBtn" style="margin:0;flex:0 0 auto">+ Add a hive or nuc</button>` : ""}</div>
+      ${cs.map(colonyCard).join("") || `<div class="small">No colonies here yet.</div><button class="btn" id="addBtn">+ Add a hive or nuc</button>`}
       ${ended ? `<button class="link" data-nav="past" style="margin-top:10px">Past colonies (${ended}) — dead-outs, sold, combined ›</button>` : ""}
       <div style="height:60px"></div>`;
   },
   mount(p, v) {
     v.querySelectorAll("[data-yard]").forEach(el => el.onclick = () => { db.settings.currentYard = el.dataset.yard; saveDb(); render(); });
     v.querySelector("#addBtn").onclick = () => addColonySheet();
+    v.querySelector("#dvGo")?.addEventListener("click", () => { const dv = db.drafts.visit; dv.at = Date.now(); saveDb(); nav(dv.type === "full" ? "visitCam" : "visitStart", { id: dv.colonyId }); });
+    v.querySelector("#dvDrop")?.addEventListener("click", () => { if (!confirm("Discard the unfinished visit? Its photos and taps are deleted.")) return; discardDraft(); camFor = null; rerender(); toast("Discarded"); });
     v.querySelector("#yardTalk")?.addEventListener("click", () => yardTalkSheet());
     v.querySelector("#apSwitch").onclick = () => apiarySheet();
   }
