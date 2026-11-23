@@ -20,7 +20,7 @@ function openAdvice(day) {
   if (day.past) return { level: "info", text: `Too late to open today — it's getting dark${day.sunset ? ` (sunset ${day.sunset})` : ""}. Check the coming days.`, short: "Done for today", window: null };
   if (day.rain) return { level: "risk", text: "Rain — don't open. Bees are home and defensive; brood chills.", short: "Don't open", window: null };
   if (day.wind >= 15) return { level: "warn", text: `Wind ${day.wind} mph — bees get defensive and frames chill. Quick look at most.`, short: "Windy", window: win("Calmest part of the day") };
-  if (day.hi >= 57) return { level: "ok", text: `Good to open: ${day.hi}°F, wind ${day.wind} mph. Foragers are out, so the box is calmer.`, short: "Good to open", window: win(day.hi >= 70 ? "10 AM–4 PM (best 11–2, while foragers are out)" : "11 AM–3 PM (warmest hours)") };
+  if (day.hi >= 57) return { level: "ok", text: `${day.hi}°F, wind ${day.wind} mph. Foragers are out, so the box is calmer.`, short: "Good to open", window: win(day.hi >= 70 ? "10 AM–4 PM (best 11–2, while foragers are out)" : "11 AM–3 PM (warmest hours)") };
   if (day.hi >= 50) return { level: "warn", text: `Quick look only at ${day.hi}°F — keep frames out briefly, don't break the cluster.`, short: "Quick look only", window: win("About 1–3 PM, the warmest part of the day") };
   return { level: "risk", text: `${day.hi}°F is too cold to pull frames. Heft, check the entrance, feed fondant if light.`, short: "Heft only", window: null };
 }
@@ -317,7 +317,7 @@ function packingFor(colonies) {
 /* Yard-wide alerts for the home screen */
 function yardAlerts(yardId) {
   const fc = forecastFor(yardId), fr = firstFreeze(fc), cs = activeIn(yardId);
-  const urgent = cs.filter(c => needsFor(c).some(n => n.level === "risk" && n.due && (!fr || n.due <= addDays(fr, 0))));
+  const urgent = cs.filter(c => needsFor(c).some(n => (n.level === "risk" || n.level === "warn") && n.due && (!fr || n.due <= addDays(fr, 0))));
   const out = [];
   if (fr) out.push({ icon: "❄️", text: `First hard freeze ${fmtD(fr)}. ${urgent.length ? `${urgent.length} ${urgent.length === 1 ? "colony needs" : "colonies need"} something done before then.` : "Everyone's ready."}` });
   const y = yardOf(yardId);

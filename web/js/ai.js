@@ -4,7 +4,9 @@
 const AI_DEFAULT_TIMEOUT = 70000;
 let aiStatus = null;   // last /api/health answer, or {ok:false, error}
 
-function aiBase() { return (db.settings.aiUrl || "").replace(/\/+$/, ""); }
+// On the GitHub Pages copy there's no server behind the site, so it talks to the public AI server.
+const DEFAULT_AI_SERVER = "https://hive-notes.onrender.com";
+function aiBase() { return (db.settings.aiUrl || (location.hostname.endsWith("github.io") ? DEFAULT_AI_SERVER : "")).replace(/\/+$/, ""); }
 async function aiHealth(force = false) {
   if (aiStatus && !force && Date.now() - aiStatus.at < 60000) return aiStatus;
   try {
