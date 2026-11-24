@@ -365,7 +365,7 @@ def report() -> str:
 <h1>Hive notes</h1>
 <p class="lede">A phone app for beekeepers that records each hive visit — what you saw, said and photographed, plus the weather — and has AI agents turn it into what to expect and what to do next, checked before you see it.</p>
 <div class="links"><b>{AUTHOR}</b> · MGT 409 AI Foundations for Managers · Final project, November 2026<br>
-Repo: <a href="{REPO}">{REPO}</a><br>
+GitHub repo (public): <a href="{REPO}">{REPO}</a> · clone: <code>git clone {REPO}.git</code><br>
 Live app with AI: <a href="{LIVE_AI}">{LIVE_AI}</a> (access code in the Canvas comment) · Phone-only copy: <a href="{LIVE_PAGES}">{LIVE_PAGES}</a></div>
 <div class="row">{img('02_yard', 'The apiary screen: live 10-day forecast, freeze warning, and each colony’s most urgent need.')}{img('04_summary_rules', 'After a visit: how it looks now and what to expect, each with “how sure” and “why”.')}</div>
 
@@ -467,7 +467,7 @@ def slides() -> str:
 <div><div class="kicker">MGT 409 · Final project</div><h1>🐝 Hive notes</h1>
 <p class="pitch">Snap it. Say it. Tap it.<br>Know what to do next.</p>
 <p class="sub">An AI field notebook for beekeepers. Log a visit at the hive with a frame photo, a voice note or a few taps, and get a next step timed to the forecast, checked before you see it.</p>
-<p class="small" style="margin-top:26px">{AUTHOR} · November 2026 · field-tested with a working beekeeper</p></div>
+<p class="small" style="margin-top:26px">{AUTHOR} · November 2026 · field-tested with a working beekeeper</p><p class="small" style="margin-top:6px"><b>GitHub (public):</b> {REPO}<br><code>git clone {REPO}.git</code></p></div>
 <div style="text-align:center">{shot('02_yard', '', 560)}</div></div>"""
 
     problem = f"""<h2>US beekeepers lost more than half their colonies in 2024–25{cite(1)}</h2>
@@ -525,7 +525,7 @@ Every AI answer is checked against your records first. No hardware, and your rec
 <li><b>🤝 Mentors in the loop.</b> Encrypted sync so an experienced keeper can see a newer keeper's records, plus freeze-day reminders.</li></ul>{slide_refs(8)}"""
 
     tryit = f"""<h2>Try it on your phone</h2><div class="card hl" style="margin-top:28px;font-size:1.2em;padding:24px 30px"><p><b>Live app, with the AI agents</b><br>{LIVE_AI}<br><span class="small">Access code in the Canvas comment · free server, so the first load can take a minute</span></p>
-<p><b>Code, README and report</b><br>{REPO}</p><p class="small">Run it yourself: <code>pip install -r requirements.txt</code> → <code>python server.py</code> → localhost:8040. It reads .env from the repo folder or the one above.</p></div>"""
+<p><b>Code, README and report: public GitHub repo</b><br>{REPO}<br><code>git clone {REPO}.git</code></p><p class="small">Run it yourself: <code>pip install -r requirements.txt</code> → <code>python server.py</code> → localhost:8040. It reads .env from the repo folder or the one above.</p></div>"""
 
     body = "".join([s(title, "hero"), s(problem), s(new_), s(agents), s(demo), s(cost), s(safety), s(impact), s(nxt), s(tryit)])
     return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Hive notes — slides</title>
