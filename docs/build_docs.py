@@ -423,8 +423,8 @@ def slides() -> str:
     fr = FIELD.get("frame", {}) if FIELD else {}
     title = f"""<div class="two" style="grid-template-columns:1.45fr 1fr;align-items:center;height:100%">
 <div><div class="kicker">MGT 409 · Final project</div><h1>🐝 Hive notes</h1>
-<p class="pitch">Say what you see.<br>Know what to do next.</p>
-<p class="sub">An AI field notebook for beekeepers. Talk, tap or photograph a frame at the hive, and get a next step timed to the forecast, checked before you see it.</p>
+<p class="pitch">Snap it. Say it. Tap it.<br>Know what to do next.</p>
+<p class="sub">An AI field notebook for beekeepers. Log a visit at the hive with a frame photo, a voice note or a few taps, and get a next step timed to the forecast, checked before you see it.</p>
 <p class="small" style="margin-top:26px">{AUTHOR} · November 2026 · field-tested with a working beekeeper</p></div>
 <div style="text-align:center">{shot('02_yard', '', 560)}</div></div>"""
 
