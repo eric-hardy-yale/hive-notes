@@ -55,6 +55,47 @@ def img(name: str, cap: str, width: str = "300px") -> str:
     return pending(f"Screenshot “{name}” not captured yet — {cap}")
 
 
+# Numbered references. Checked 23 Nov 2026; page titles and numbers read from the pages themselves.
+REFS = [
+    ("Auburn University (K. Watson). “U.S. Beekeeping Survey reveals highest honey bee colony losses.” Auburn Today, 16 June 2025. 55.6% of managed colonies lost, April 2024 – April 2025, the highest since the survey began in 2010.",
+     "https://wire.auburn.edu/content/agriculture/2025/06/2506-beekeepers-survey.php"),
+    ("Apiary Inspectors of America, Auburn University and Oregon State University. “Preliminary Results from the 2025-2026 US Beekeeping Survey: Honey Bee Colony Loss and Management.” 2026. 39.9% lost, April 2025 – April 2026.",
+     "https://apiaryinspectors.org/US-beekeeping-survey-25-26"),
+    ("Agricultural Marketing Resource Center, Iowa State University. “Bees” commodity profile, revised May 2024. 115,000–125,000 US beekeepers; hobby operations have 25 colonies or fewer.",
+     "https://agmrc.org/commodities-products/livestock-dairy-poultry/bees-profile"),
+    ("Package-bee listings, 3 lb of bees with a queen, viewed 23 Nov 2026 (spring 2027 season): Lappe's Bee Supply $185.00; Mountain Sweet Honey $143.00 on sale ($175.00 regular), https://mountainsweethoney.com/product/store-pick-up-italian-bee-package .",
+     "https://lappesbeesupply.com/3-lb-package-honey-bees-with-italian-hybrid-queen"),
+    ("Product websites and app-store pages of the products named in section 3, viewed November 2026. Features as their makers describe them; not independently tested.", ""),
+    ("Own measurement: live evaluation with real gpt-6-luna calls (tests/live_eval.py; results in docs/data/live_results.json in the repo).", REPO + "/blob/main/docs/data/live_results.json"),
+    ("Own tests: tests/test_guards.py (offline), tests/server_guards.py (docs/data/server_guards.json) and the attack set in tests/live_eval.py.", REPO + "/tree/main/tests"),
+    ("Own field test with a working beekeeper on a live hive, 23 Nov 2026: video, screen recording and transcript. Summary: field_test/results.json.", REPO + "/blob/main/field_test/results.json"),
+    ("Recorded conversation with the same beekeeper, 22 Nov 2026 (transcript kept private; no name or contact).", ""),
+    ("Render pricing: Starter web service instance, $7 per month. The 10,000-user server figure is my estimate.", "https://render.com/pricing"),
+    ("gpt-6-luna prices per million tokens: $0.10 input, $0.01 cached input, $0.125 cache write, $0.50 output (MGT 409, Lecture 11).", ""),
+]
+
+
+def cite(*ids: int) -> str:
+    """A reference cue like [1, 2] that links to the list at the end of the report."""
+    return '<sup class="cite">[' + ", ".join(f'<a href="#ref-{i}">{i}</a>' for i in ids) + "]</sup>"
+
+
+def ref_list() -> str:
+    items = "".join(f'<li id="ref-{i}">{e(t)}' + (f' <a href="{u}">{e(u)}</a>' if u else "") + "</li>" for i, (t, u) in enumerate(REFS, 1))
+    return f'<h2>References</h2><ol class="refs">{items}</ol>'
+
+
+def slide_refs(*ids: int) -> str:
+    """Short source line for the foot of a slide."""
+    short = {1: "Auburn Univ., U.S. Beekeeping Survey 2024–25 (2025)", 2: "Apiary Inspectors of America, 2025–26 survey (2026)",
+             3: "AgMRC, Iowa State Univ., Bees profile (2024)", 4: "Lappe's Bee Supply; Mountain Sweet Honey listings (viewed Nov 2026)",
+             5: "makers' websites and app-store pages (Nov 2026)", 6: "own measurement, real gpt-6-luna calls (docs/data/live_results.json)",
+             7: "own tests (tests/ in the repo)", 8: "own field test, 23 Nov 2026 (field_test/results.json)",
+             9: "conversation with the beekeeper, 22 Nov 2026", 10: "render.com/pricing; 10,000-user server cost is an estimate",
+             11: "gpt-6-luna list prices (MGT 409 Lecture 11)"}
+    return '<div class="srcline">Sources: ' + " · ".join(f"[{i}] {short[i]}" for i in ids) + "</div>"
+
+
 def pending(msg: str) -> str:
     return f'<div class="pending">PENDING · {e(msg)}</div>'
 
@@ -141,8 +182,9 @@ figcaption{font-size:13px;color:var(--muted);margin-top:6px} .row{display:flex;g
 .ok{color:var(--ok);font-weight:700} .bad{color:var(--risk);font-weight:700} .muted{color:var(--muted);font-size:14px}
 code,pre{font-family:ui-monospace,Menlo,monospace;font-size:12.5px} pre{background:#f6f2ea;border-radius:10px;padding:10px 12px;overflow-x:auto;white-space:pre-wrap}
 .diagram{width:100%;height:auto;background:#fbf8f2;border-radius:14px;border:1px solid var(--line)}
+sup.cite{font-size:.7em;line-height:0;margin-left:1px} sup.cite a{color:var(--honey);text-decoration:none} ol.refs{font-size:13.5px;line-height:1.45;padding-left:22px} ol.refs li{margin:5px 0} ol.refs a{color:var(--honey);word-break:break-all}
 @media print{@page{size:letter;margin:.6in} body{background:#fff;font-size:12pt} main{padding:0;max-width:none} h2{break-before:auto;margin-top:26px} figure,tr,.box,.diagram,.quote{break-inside:avoid} h2,h3{break-after:avoid} a{color:inherit}
- .row{gap:14px} .row figure,figure{flex:0 1 165px;max-width:165px;margin:8px auto} figure img{max-height:3.6in;width:auto;max-width:100%} figure img{box-shadow:none;border-radius:10px} figcaption{font-size:9.5pt} .diagram{max-height:4.2in}}
+ .row{gap:14px} .row figure,figure{flex:0 1 155px;max-width:155px;margin:6px auto} ol.refs{font-size:9pt;line-height:1.3} ol.refs li{margin:2px 0} p{margin:6px 0} h3{margin:16px 0 4px} table{margin:6px 0} figure img{max-height:3.6in;width:auto;max-width:100%} figure img{box-shadow:none;border-radius:10px} figcaption{font-size:9.5pt} .diagram{max-height:4.2in}}
 """
 
 
@@ -169,12 +211,12 @@ def section_tokenomics() -> str:
     acc_f, acc_l = LIVE["scribe_full"]["accuracy"], LIVE["scribe_lean"]["accuracy"]
     inv_f, inv_l = LIVE["scribe_full"]["totals"]["invented"], LIVE["scribe_lean"]["totals"]["invented"]
     return f"""
-<p>Every number here is from the API's own usage report on real calls to <b>gpt-6-luna</b> ({e(LIVE['ran_at'])}, {sf['n']} labelled notes, {adv['n']} plans, {len(att)} attacks), priced at the course rates:
+<p>Every number here is from the API's own usage report on real calls to <b>gpt-6-luna</b>{cite(6)} ({e(LIVE['ran_at'])}, {sf['n']} labelled notes, {adv['n']} plans, {len(att)} attacks), priced at the course rates{cite(11)}:
 $0.10 per million input tokens, $0.01 per million cached input tokens, $0.125 per million tokens written to the cache, $0.50 per million output tokens. The app also shows these counts on the phone (More → AI usage), per call.</p>
 <table><tr><th>One run</th><th class=n>runs</th><th class=n>input tokens</th><th class=n>cached (read)</th><th class=n>cache write</th><th class=n>output</th><th class=n>avg cost</th></tr>{t}</table>
 {img('11_ai_usage', 'The AI usage screen on the phone: every call with its input, cached and output tokens and its cost.')}
 <h3>Per user per month</h3>
-<p>A typical hobbyist has fewer than 25 colonies; I modelled 4 colonies visited every two weeks in season. That is about this much AI work a month:</p>
+<p>A hobby operation has 25 colonies or fewer{cite(3)}; I modelled 4 colonies visited every two weeks in season. That is about this much AI work a month:</p>
 <table><tr><th>Use</th><th class=n>per month</th><th class=n>cost each</th><th class=n>monthly</th></tr>{plan_rows}
 <tr><th>Total model cost per active user per month</th><th></th><th></th><th class=n>{money(month, 4)}</th></tr></table>
 <h3>At scale</h3>
@@ -259,7 +301,7 @@ def section_safety() -> str:
 <td>The Checker blocks any dose and any product outside the label list, makes sure every high-risk finding from the rules engine is in the plan, and requires “call the state apiarist” for foulbrood signs. Nothing saves without the keeper's tap.</td></tr>
 <tr><td><b>Overspending and loops</b></td><td>A bug or a stranger hammers the public server and burns the course budget.</td>
 <td>A daily dollar cap (checked before every model call), a per-device hourly limit, a size limit, an access code on the public server, a 4-round tool limit, and output-token caps.</td></tr></table>
-<h3>Evidence: the guards stopping things</h3>
+<h3>Evidence: the guards stopping things{cite(7)}</h3>
 <p><b>Server guards</b> (tests/server_guards.py starts the real server with strict limits and attacks it):</p>
 <table><tr><th>Guard</th><th class=n>HTTP</th><th>Result</th></tr>{grows or '<tr><td colspan=3>not run</td></tr>'}</table>
 <p><b>Code guards</b> (tests/test_guards.py, offline): <span class="{'ok' if passed == ran else 'bad'}">{passed}/{ran} tests pass</span>. These include an invented “stores: light” being dropped, an invented weight being rejected, “4 strips of Apivar” being blocked, an unlisted product being blocked, a high-risk finding being left out, and the budget cap stopping a call.</p>
@@ -286,7 +328,7 @@ def section_impact() -> str:
         quotes = "".join(f'<div class="quote">“{e(q)}” — the beekeeper</div>' for q in f.get("quotes", []))
         issues = "".join(f'<tr><td>{e(i["what"])}{(" <i>“" + e(i["said"]) + "”</i>") if i.get("said") and not i["said"].startswith("Recorded") else ""}</td><td>{e(i["fix"])}</td></tr>' for i in f.get("issues", []))
         ff = f"""
-<h3>Field test: a working beekeeper, a live hive ({e(f.get('date', ''))})</h3>
+<h3>Field test: a working beekeeper, a live hive ({e(f.get('date', ''))}){cite(8)}</h3>
 <p>{e(f.get('setting', ''))} Weather: {e(f.get('weather', ''))}</p>
 <p><b>What ran:</b> {e(' '.join(f.get('what_ran', [])))}</p>
 <table>
@@ -307,13 +349,13 @@ def section_impact() -> str:
     else:
         ff = pending("Field test results (timing vs. the keeper's usual method, Frame Reader and Scribe accuracy checked by the keeper, their verdict on the plan, quotes) fill in from field_test/results.json after the morning test.")
     return f"""
-<p><b>The problem is big.</b> US beekeepers lost an estimated <b>55.6%</b> of their managed colonies from April 2024 to April 2025, the highest loss rate the national survey has recorded, and <b>39.9%</b> the following year
-(Auburn University / Apiary Inspectors of America U.S. Beekeeping Survey). The US has roughly 115,000–125,000 beekeepers, and most are hobbyists with fewer than 25 hives (AgMRC; National Honey Board).
-A replacement colony costs about <b>$155–$210</b> as a 3 lb package in 2026 (retailer listings), plus a season of lost honey.</p>
+<p><b>The problem is big.</b> US beekeepers lost an estimated <b>55.6%</b> of their managed colonies from April 2024 to April 2025, the highest loss rate since the national survey began in 2010{cite(1)}, and <b>39.9%</b> the following year{cite(2)}.
+The US has roughly 115,000–125,000 beekeepers; a hobby operation is one with 25 colonies or fewer{cite(3)}.
+A replacement colony costs about <b>$143–$185</b> as a 3 lb package of bees with a queen{cite(4)}, plus a season of lost honey.</p>
 <p><b>Where this app helps.</b> Several common ways to lose a colony are a matter of timing: syrup not given before the first hard freeze, mites not counted until too late, a queenless nuc not noticed for two visits.
 Hive notes ties each of those to the live forecast and that colony's own trend, and tells the keeper by when.</p>
-<p><b>A careful estimate, not a measurement:</b> if the app helps a 4-colony hobbyist save one colony every two winters, that's about $90 a year in bees, against well under $1 a year in AI cost.
-Across 10,000 users, that's about $900,000 a year in colonies not lost. This is an assumption to test, not a result.</p>
+<p><b>A careful estimate, not a measurement:</b> if the app helps a 4-colony hobbyist save one colony every two winters, that's about $80 a year in bees (half of a ~$165 package{cite(4)}), against well under $1 a year in AI cost{cite(6)}.
+Across 10,000 users, that's about $800,000 a year in colonies not lost. This is an assumption to test, not a result.</p>
 {ff}"""
 
 
@@ -328,17 +370,17 @@ Live app with AI: <a href="{LIVE_AI}">{LIVE_AI}</a> (access code in the Canvas c
 <div class="row">{img('02_yard', 'The apiary screen: live 10-day forecast, freeze warning, and each colony’s most urgent need.')}{img('04_summary_rules', 'After a visit: how it looks now and what to expect, each with “how sure” and “why”.')}</div>
 
 <h2>2. Motivation</h2>
-<p>The person behind this app is a working beekeeper I know. I asked what an app could do for them, and the first answer was the honest one:</p>
+<p>The person behind this app is a working beekeeper I know{cite(9)}. I asked what an app could do for them, and the first answer was the honest one:</p>
 <div class="quote">“Note taking is the only thing that I would use the app for.”</div>
 <p>When I pointed out that note apps for beekeepers already exist, they described the real jobs: <b>record the conditions</b> of every visit (“the degrees of it matters”), <b>find the queen</b> (“you put the dot on it, but it’s still … always hard”),
 <b>read a frame like a plant-ID app reads a leaf</b>, count <b>mites and pests</b>, and above all:</p>
 <div class="quote">“tell you what to expect … the hive looks like it needs more sugar water … if the hive is too cold for them to survive … if you need to do another split, if the hive is going to swarm … help newer people or people in general figure out what the next step they should do in the hive.”</div>
 <p><b>How it's done today.</b> Keepers open the hive, then write notes on paper, in a phone notes app, or on the lid with a marker. Some keep nothing. The judgment calls, like feeding now or waiting, treating, or combining a weak colony, come from experience, a mentor, a club, or a web search. That works for experienced keepers. It fails new keepers at exactly the moments that kill colonies: feeding too late in the fall, missing a mite spike, or not noticing a queenless nuc.</p>
-<p><b>What it costs.</b> Colony losses are the cost. US keepers lost an estimated 55.6% of managed colonies in 2024–25 and 39.9% in 2025–26 (national survey). Each loss costs about $155–$210 to replace, plus the honey and the season.
+<p><b>What it costs.</b> Colony losses are the cost. US keepers lost an estimated 55.6% of managed colonies in 2024–25{cite(1)} and 39.9% in 2025–26{cite(2)}. Each loss costs about $143–$185 to replace with a package of bees{cite(4)}, plus the honey and the season.
 The work costs too: an inspection is done with gloves on, in a veil, with bees in the air. That's why notes get skipped, and why the beekeeper asked for an app that would “automatically record stuff.”</p>
 
 <h2>3. What is new here</h2>
-<p>I searched before building. Named products, from their own store pages and websites (claims not independently tested):</p>
+<p>I searched before building. Named products, from their own store pages and websites (claims not independently tested){cite(5)}:</p>
 <table><tr><th>Product</th><th>What it does</th><th>What it doesn't</th></tr>
 <tr><td>HiveTracks, Hivecard, ApiaryOS, ApiNote, Beehive Manager</td><td>Inspection logs; several stamp the weather on each visit; HiveTracks has guided inspections and to-dos.</td><td>No predictions from the forecast and the colony's trend; you type everything.</td></tr>
 <tr><td>QueenRadar, BeeScanning, BeeKeeper Pro, HiveCheck, Apizoom</td><td>Camera checks: queen and queen cells, varroa, brood pattern, sick brood, mite trays.</td><td>A reading of one photo, not a plan; no link to weather or the colony's history.</td></tr>
@@ -382,7 +424,7 @@ The code takes either key: <code>PORTKEY_API_KEY</code> (the course key, through
 <li><b>Predictions are only checked over time.</b> The app scores its own stores, mite and queen predictions as new readings come in. A season of use is needed to know how often it's right.</li>
 </ul>
 <p><b>With another month:</b> test it with 5–10 keepers through a club, including newer keepers; measure colonies fed before the freeze and mite counts taken on time; add encrypted sync so a mentor can see a newer keeper's records; add push reminders; build a labelled frame-photo set from field use to test or train the Frame Reader; and add a photo of each side of a frame (the keeper asked “does it do both sides?”).</p>
-<p class=muted>Sources: Auburn University / Oregon State / Apiary Inspectors of America, U.S. Beekeeping Survey 2024–25 and 2025–26 (apiaryinspectors.org); Agricultural Marketing Resource Center, Bees Profile (agmrc.org); National Honey Board, Honey Industry Facts; 2026 package-bee retailer listings (Dadant, Lappe's Bee Supply, others); competitor store pages and websites as listed in section 3; Open-Meteo for weather.</p>
+{ref_list()}
 </main></body></html>"""
 
 
@@ -408,15 +450,15 @@ def slides() -> str:
         host = {100: 7, 10000: 85}
         scale_rows = "".join(f"<tr><td>{u:,} keepers</td><td class=n>{money(month * u, 2)}</td><td class=n>${host[u]}</td><td class=n><b>{money(month * u + host[u], 2)}</b></td></tr>" for u in host)
         cost_h = "Under half a cent per keeper, per month" if month < 0.005 else f"{money(month, 3)} per keeper, per month"
-        cost = f"""<h2>{cost_h}</h2><p class="lead">Measured from real gpt-6-luna calls, not estimated.</p>
+        cost = f"""<h2>{cost_h}{cite(6)}</h2><p class="lead">Measured from real gpt-6-luna calls, not estimated.</p>
 <div class="two" style="grid-template-columns:1.4fr 1fr;margin-top:6px">
 <div><div class="stats"><div><b>{money(sf['cost'], 5)}</b><span>a spoken note becomes records<br>{sf['input']:,.0f} tokens in, {sf['cached'] / max(sf['input'], 1):.0%} from cache</span></div>
 <div><b>{money(adv['cost'], 5)}</b><span>a checked plan, with the live forecast</span></div>
 <div><b>{money(month, 3)}</b><span>a keeper's month<br>4 notes + 16 plans or questions</span></div></div>
-<table class="tbl"><tr><th>At scale</th><th class=n>AI / month</th><th class=n>server</th><th class=n>total / month</th></tr>{scale_rows}</table>
+<table class="tbl"><tr><th>At scale</th><th class=n>AI / month</th><th class=n>server{cite(10)}</th><th class=n>total / month</th></tr>{scale_rows}</table>
 <p class="small"><b>How it stays cheap:</b> a free rules engine answers first, and AI runs only when you tap · {sf['cached'] / max(sf['input'], 1):.0%} of prompt tokens come from cache · only the last 3 visits are sent · photos shrink to 768 px.<br>
 <b>Tested and dropped:</b> a leaner prompt. It was no cheaper and less accurate.</p></div>
-<div>{shot('11_ai_usage', 'Every call’s tokens and cost, shown in the app', 500)}</div></div>"""
+<div>{shot('11_ai_usage', 'Every call’s tokens and cost, shown in the app', 500)}</div></div>{slide_refs(6, 10, 11)}"""
     else:
         cost = "<h2>Cost to run</h2>" + pending("real token counts")
 
@@ -428,27 +470,27 @@ def slides() -> str:
 <p class="small" style="margin-top:26px">{AUTHOR} · November 2026 · field-tested with a working beekeeper</p></div>
 <div style="text-align:center">{shot('02_yard', '', 560)}</div></div>"""
 
-    problem = f"""<h2>US beekeepers lost more than half their colonies in 2024–25</h2>
-<p class="lead">Most are hobbyists, working gloved, from memory, often alone. A working beekeeper told me where it hurts.</p>
+    problem = f"""<h2>US beekeepers lost more than half their colonies in 2024–25{cite(1)}</h2>
+<p class="lead">Many work gloved, from memory, often alone. A working beekeeper told me where it hurts{cite(9)}.</p>
 <div class="two" style="grid-template-columns:.85fr 2fr;margin-top:6px">
-<div class="stats col"><div><b>55.6%</b><span>of managed colonies lost, the worst year on record</span></div>
-<div><b>$155–210</b><span>to replace one colony, plus a season of honey</span></div>
-<div><b>~120,000</b><span>US beekeepers, most with fewer than 25 hives</span></div></div>
+<div class="stats col"><div><b>55.6%</b><span>of managed colonies lost, Apr 2024–Apr 2025: the worst since the survey began{cite(1)}</span></div>
+<div><b>$143–185</b><span>for a package of bees to replace one colony, plus a season of honey{cite(4)}</span></div>
+<div><b>115–125k</b><span>US beekeepers, from hobbyists (25 colonies or fewer) to commercial{cite(3)}</span></div></div>
 <div class="cards">
 <div class="card"><b>🧤 Hands full of bees, so notes get skipped.</b><p class="q">“That process is kind of difficult to handle the bees while taking the notes, especially because the bees' temperament can change at any moment.”</p></div>
 <div class="card"><b>🔍 Health is read by eye, one frame at a time.</b><p class="q">“Something that will analyze the health of the hive … like the plant thing.” And conditions count: “the degrees of it matters.”</p></div>
 <div class="card"><b>🧭 The next step takes years to learn.</b><p class="q">“Tell you what to expect … if the hive is going to swarm … help newer people figure out what the next step they should do in the hive.”</p></div>
 </div></div>
-<p class="small" style="margin-top:12px"><b>After using the app at the hive, the same keeper singled out exactly these:</b> information “in real time”, knowing “whether there's honey, if there's brood”, and voice notes that make “an unsafe process … a little bit more safe.”</p>"""
+<p class="small" style="margin-top:12px"><b>After using the app at the hive{cite(8)}, the same keeper singled out exactly these:</b> information “in real time”, knowing “whether there's honey, if there's brood”, and voice notes that make “an unsafe process … a little bit more safe.”</p>{slide_refs(1, 3, 4, 8, 9)}"""
 
-    new_ = """<h2>Others record the hive. This one tells you what's next.</h2>
-<table class="tbl" style="margin-top:20px;font-size:.8em"><tr><th>Today's options</th><th>For example</th><th>The gap</th></tr>
+    new_ = f"""<h2>Others record the hive. This one tells you what's next.</h2>
+<table class="tbl" style="margin-top:20px;font-size:.8em"><tr><th>Today's options</th><th>For example{cite(5)}</th><th>The gap</th></tr>
 <tr><td>Inspection logs</td><td>HiveTracks, Hivecard, ApiaryOS</td><td>You type, it stores. No advice.</td></tr>
 <tr><td>Photo readers</td><td>BeeScanning, QueenRadar, Apizoom</td><td>Reads one photo. No plan, no weather.</td></tr>
 <tr><td>Hive sensors</td><td>BroodMinder, Bee Hive Monitoring</td><td>Hundreds of dollars of hardware per hive.</td></tr>
 <tr><td>Chatbots</td><td>ChatGPT</td><td>Doesn't know your hives or Thursday's freeze.</td></tr></table>
 <div class="card hl" style="margin-top:28px;font-size:.86em;padding:18px 22px"><b>Hive notes</b> = what you saw + the <b>live forecast</b> + this colony's <b>trend</b> → <b>a dated next step</b>, like “Feed 2:1 syrup before Tuesday's hard freeze.”
-Every AI answer is checked against your records first. No hardware, and your records stay on your phone.</div>"""
+Every AI answer is checked against your records first. No hardware, and your records stay on your phone.</div>{slide_refs(5)}"""
 
     agents = f"""<h2>Three agents. Nothing reaches the keeper unchecked.</h2><div class="two" style="grid-template-columns:2fr 1fr;align-items:center;margin-top:8px">
 <div>{DIAGRAM}</div><div class="roles">
@@ -456,31 +498,31 @@ Every AI answer is checked against your records first. No hardware, and your rec
 <p><b>📷 Frame Reader</b> pre-taps what it sees on a frame. The keeper confirms.</p>
 <p><b>🧭 Advisor</b> plans for one colony with live tools: forecast, history, treatment labels.</p>
 <p><b>✅ Checker</b> is plain code, not AI. Numbers must trace to records; no doses; no dropped risks. One retry, then the safe rules plan.</p>
-<p class="muted2">All on gpt-6-luna: fast, cheap, strict JSON.</p></div></div>"""
+<p class="muted2">All on gpt-6-luna: fast, cheap, strict JSON{cite(11)}.</p></div></div>{slide_refs(11)}"""
 
     demo = f"""<h2>One visit, start to finish</h2><div class="r" style="margin-top:10px">{shot('02_yard', '① Morning: forecast and what’s urgent', 500)}{shot('03_frame_taps', '② At the hive: tap or photograph each frame', 500)}{shot('08_scribe_result', '③ Say it once: the Scribe fills the records', 500)}{shot('09_advisor_plan', '④ The plan, checked before you see it', 500)}</div>"""
 
-    safety = f"""<h2>Every answer is checked. Every test attack was blocked.</h2><div class="two" style="grid-template-columns:1.6fr 1fr;align-items:center"><div>
+    safety = f"""<h2>Every answer is checked. Every test attack was blocked.{cite(7)}</h2><div class="two" style="grid-template-columns:1.6fr 1fr;align-items:center"><div>
 <ul class="small2 arrows"><li><b>Prompt injection</b> → notes and photos are treated as data, never as instructions</li>
 <li><b>Made-up facts</b> → every record field quotes the keeper; every number traces to records or a tool</li>
 <li><b>Harmful advice</b> → no doses, labelled products only, high-risk warnings can't be dropped</li>
 <li><b>Runaway spend</b> → daily $ cap, rate limit, access code, at most 4 tool rounds</li></ul>
 <div class="stats" style="margin-top:16px"><div><b>{guards}</b><span>server guards held</span></div><div><b>{attacks}</b><span>live attacks blocked</span></div><div><b>17/17</b><span>code guard tests pass</span></div></div></div>
-<div>{shot('12_injection_blocked', 'A note that tries to give the AI orders: flagged, ignored, facts kept', 520)}</div></div>"""
+<div>{shot('12_injection_blocked', 'A note that tries to give the AI orders: flagged, ignored, facts kept', 520)}</div></div>{slide_refs(7)}"""
 
-    impact = (f"""<h2>Field test: “I think the app is useful.”</h2><p class="lead">One working beekeeper, one live hive, 23 November.</p>
+    impact = (f"""<h2>Field test: “I think the app is useful.”{cite(8)}</h2><p class="lead">One working beekeeper, one live hive, 23 November.</p>
 <div class="two" style="grid-template-columns:1.1fr 1fr;align-items:center">
 <div>{shot('20_field_1', 'The AI called this honey “capped brood”. The keeper caught it.', 400)}</div>
 <div class="small2"><ul><li>AI frame reads: <b>{fr.get('right')} right, {fr.get('wrong')} wrong, {fr.get('missed')} missed</b> (honey mistaken for brood), about $0.0005 each</li>
 <li>Closing checks: the keeper agreed with <b>4 of 4</b></li><li><b>2 bugs found at the hive, fixed that evening:</b> lost frames, silent voice notes</li></ul>
 <p class=q>“It kind of makes an unsafe process be a little bit more safe.”</p></div></div>
-<p class="small" style="margin-top:8px"><b>If it saves one colony every two winters:</b> about $90 a year per keeper, for under $1 a year of AI. An estimate, not yet measured.</p>""") if FIELD else "<h2>Impact</h2>" + pending("field test")
+<p class="small" style="margin-top:8px"><b>If it saves one colony every two winters:</b> about $80 a year per keeper (half a ~$165 package{cite(4)}), for under $1 a year of AI{cite(6)}. An estimate, not yet measured.</p>{slide_refs(4, 6, 8)}""") if FIELD else "<h2>Impact</h2>" + pending("field test")
 
-    nxt = """<h2>Next: hands-free, proven, and in more hives</h2><ul class="small2 big-list" style="margin-top:24px">
-<li><b>🎙 Hands-free first.</b> “You need both your hands to do this.” Talk once after closing the hive, and skip the tapping.</li>
+    nxt = f"""<h2>Next: hands-free, proven, and in more hives</h2><ul class="small2 big-list" style="margin-top:24px">
+<li><b>🎙 Hands-free first.</b> “You need both your hands to do this.”{cite(8)} Talk once after closing the hive, and skip the tapping.</li>
 <li><b>🔬 Prove the AI.</b> A second field test of the fixes, and 100+ labelled frame photos to measure the honey-vs-brood error.</li>
 <li><b>🐝 More keepers, a full season.</b> 5–10 through a local club, tracking feeding before the freeze, mite counts and losses.</li>
-<li><b>🤝 Mentors in the loop.</b> Encrypted sync so an experienced keeper can see a newer keeper's records, plus freeze-day reminders.</li></ul>"""
+<li><b>🤝 Mentors in the loop.</b> Encrypted sync so an experienced keeper can see a newer keeper's records, plus freeze-day reminders.</li></ul>{slide_refs(8)}"""
 
     tryit = f"""<h2>Try it on your phone</h2><div class="card hl" style="margin-top:28px;font-size:1.2em;padding:24px 30px"><p><b>Live app, with the AI agents</b><br>{LIVE_AI}<br><span class="small">Access code in the Canvas comment · free server, so the first load can take a minute</span></p>
 <p><b>Code, README and report</b><br>{REPO}</p><p class="small">Run it yourself: <code>pip install -r requirements.txt</code> → <code>python server.py</code> → localhost:8040. It reads .env from the repo folder or the one above.</p></div>"""
@@ -511,6 +553,8 @@ Every AI answer is checked against your records first. No hardware, and your rec
 .reveal figcaption{{font-size:.45em;color:#6f6556;margin-top:6px}} .reveal .diagram{{width:100%;max-height:520px;background:#fffdf8;border-radius:14px}}
 .reveal code{{font-size:.9em;background:#fff;border-radius:6px;padding:1px 6px}}
 .pending{{background:#fff4cc;border:2px dashed #d9a400;padding:6px 10px;font-size:.5em;border-radius:8px}}
+.reveal sup.cite{{font-size:.45em;color:#a86a05;font-weight:600;vertical-align:super;line-height:0;margin-left:2px}} .reveal h2 sup.cite{{font-size:.4em}} .reveal sup.cite a{{color:#a86a05;pointer-events:none}} .reveal .stats sup.cite,.reveal .stats sup.cite a{{color:#ffc93c}}
+.reveal .srcline{{position:absolute;left:42px;right:90px;bottom:16px;font-size:.36em;line-height:1.35;color:#7a6548}}
 </style>
 </head><body><div class="reveal"><div class="slides">{body}</div></div>
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
