@@ -40,7 +40,7 @@ LIVE = load(DATA / "live_results.json")
 GUARDS = load(DATA / "server_guards.json")
 FIELD = load(ROOT / "field_test" / "results.json")
 FIELD_USAGE = load(DATA / "usage_from_field.json")
-KEY_NOTE = ("The measured runs in this report used my own OpenAI key, because my course Portkey key stopped working the weekend the project was due (Portkey returned “Invalid API Key”). The teaching staff's .env with PORTKEY_API_KEY works with the same code."
+KEY_NOTE = ("The measured runs in this report used my own OpenAI key, because my course Portkey key stopped working the weekend the project was due (Portkey returned “Invalid API Key”). The teaching staff's .env with PORTKEY_API_KEY works with the same code, and if a Portkey key is ever refused while an OPENAI_API_KEY is also set, the server switches to OpenAI by itself (tested from a fresh clone)."
             if (LIVE or {}).get("key") == "OPENAI_API_KEY" else "")
 e = html.escape
 
@@ -63,8 +63,8 @@ REFS = [
      "https://apiaryinspectors.org/US-beekeeping-survey-25-26"),
     ("Agricultural Marketing Resource Center, Iowa State University. “Bees” commodity profile, revised May 2024. 115,000–125,000 US beekeepers; hobby operations have 25 colonies or fewer.",
      "https://agmrc.org/commodities-products/livestock-dairy-poultry/bees-profile"),
-    ("Package-bee listings, 3 lb of bees with a queen, viewed 23 Nov 2026 (spring 2027 season): Lappe's Bee Supply $185.00; Mountain Sweet Honey $143.00 on sale ($175.00 regular), https://mountainsweethoney.com/product/store-pick-up-italian-bee-package .",
-     "https://lappesbeesupply.com/3-lb-package-honey-bees-with-italian-hybrid-queen"),
+    ("Package-bee listings, 3 lb of bees with a queen, viewed 23 Nov 2026 (spring 2027 season): Lappe's Bee Supply, $185.00; Mountain Sweet Honey, $143.00 on sale ($175.00 regular).",
+     "https://lappesbeesupply.com/3-lb-package-honey-bees-with-italian-hybrid-queen https://mountainsweethoney.com/product/store-pick-up-italian-bee-package"),
     ("Product websites and app-store pages of the products named in section 3, viewed November 2026. Features as their makers describe them; not independently tested.", ""),
     ("Own measurement: live evaluation with real gpt-6-luna calls (tests/live_eval.py; results in docs/data/live_results.json in the repo).", REPO + "/blob/main/docs/data/live_results.json"),
     ("Own tests: tests/test_guards.py (offline), tests/server_guards.py (docs/data/server_guards.json) and the attack set in tests/live_eval.py.", REPO + "/tree/main/tests"),
@@ -81,7 +81,7 @@ def cite(*ids: int) -> str:
 
 
 def ref_list() -> str:
-    items = "".join(f'<li id="ref-{i}">{e(t)}' + (f' <a href="{u}">{e(u)}</a>' if u else "") + "</li>" for i, (t, u) in enumerate(REFS, 1))
+    items = "".join(f'<li id="ref-{i}">{e(t)}' + "".join(f' <a href="{x}">{e(x)}</a>' for x in u.split()) + "</li>" for i, (t, u) in enumerate(REFS, 1))
     return f'<h2>References</h2><ol class="refs">{items}</ol>'
 
 
@@ -170,7 +170,7 @@ CSS = """
 *{box-sizing:border-box} body{margin:0;background:#e9e3d8;color:var(--ink);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}
 main{max-width:860px;margin:0 auto;background:#fff;padding:48px 56px 60px}
 h1{font-size:34px;margin:0 0 6px;letter-spacing:-.4px} h2{font-size:24px;margin:42px 0 10px;padding-top:8px;border-top:3px solid var(--honey)}
-h3{font-size:18px;margin:24px 0 6px} p{margin:8px 0} .lede{font-size:19px;color:#3a3229}
+h3{font-size:18px;margin:24px 0 6px} p{margin:8px 0} .lede{font-size:19px;color:#3a3229} .pitch{font-size:23px;font-weight:800;color:var(--honey);margin:2px 0 6px;letter-spacing:-.2px}
 .links{background:var(--paper);border-radius:12px;padding:12px 16px;margin:14px 0;font-size:15px} .links a{color:var(--honey);font-weight:600}
 table{border-collapse:collapse;width:100%;margin:10px 0;font-size:14px} th,td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top} th{background:var(--paper)}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
@@ -221,7 +221,7 @@ $0.10 per million input tokens, $0.01 per million cached input tokens, $0.125 pe
 <tr><th>Total model cost per active user per month</th><th></th><th></th><th class=n>{money(month, 4)}</th></tr></table>
 <h3>At scale</h3>
 <table><tr><th>Users</th><th class=n>model cost / month</th><th class=n>server / month</th><th class=n>total / month</th><th class=n>per user</th></tr>{scale}</table>
-<p class=muted>Server: one small paid web instance for 100 users, a few for 10,000 (estimate from list prices). Records and photos live on the phones, so there is no database or photo storage bill.
+<p class=muted>Server: one $7-a-month instance for 100 users{cite(10)}; a few for 10,000 (my estimate). Records and photos live on the phones, so there is no database or photo storage bill.
 The model is so cheap that hosting, not tokens, is most of the cost.</p>
 <h3>What I did to keep cost down</h3>
 <ul>
@@ -335,7 +335,7 @@ def section_impact() -> str:
 <tr><td>Hive open, using the app</td><td>about {f.get('minutes_hive_open', '?')} min</td></tr>
 <tr><td>Frame Reader on {fr.get('photos_read', '?')} frame photos: suggestions right / wrong / missed, checked by the keeper</td><td>{fr.get('right', '?')} / {fr.get('wrong', '?')} / {fr.get('missed', '?')}</td></tr>
 {''.join(f'<tr><td colspan=2 class=muted>{e(d)}</td></tr>' for d in fr.get('detail', []))}
-{(f"<tr><td>Re-read the same evening with the new prompt</td><td>{e(f['reread']['frame_1'])} {e(f['reread']['frame_2'])} <i>{e(f['reread']['takeaway'])}</i> <span class=muted>({e(f['reread']['how'])} {e(f['reread']['cost'])}.)</span></td></tr>") if f.get('reread') else ''}
+{(f"<tr><td>Same frames, re-read that evening with the new prompt</td><td>{e(f['reread']['frame_1'])} {e(f['reread']['frame_2'])} <i>{e(f['reread']['takeaway'])}</i> <span class=muted>{e(f['reread']['how'])}</span></td></tr>") if f.get('reread') else ''}
 <tr><td>Closing taps the keeper confirmed</td><td>{e(f.get('taps_confirmed', '?'))}</td></tr>
 <tr><td>Frames saved to the record</td><td>{e(f.get('frames_saved', '?'))}</td></tr>
 <tr><td>Voice notes captured</td><td>{e(f.get('voice_notes', '?'))}</td></tr>
@@ -349,9 +349,7 @@ def section_impact() -> str:
     else:
         ff = pending("Field test results (timing vs. the keeper's usual method, Frame Reader and Scribe accuracy checked by the keeper, their verdict on the plan, quotes) fill in from field_test/results.json after the morning test.")
     return f"""
-<p><b>The problem is big.</b> US beekeepers lost an estimated <b>55.6%</b> of their managed colonies from April 2024 to April 2025, the highest loss rate since the national survey began in 2010{cite(1)}, and <b>39.9%</b> the following year{cite(2)}.
-The US has roughly 115,000–125,000 beekeepers; a hobby operation is one with 25 colonies or fewer{cite(3)}.
-A replacement colony costs about <b>$143–$185</b> as a 3 lb package of bees with a queen{cite(4)}, plus a season of lost honey.</p>
+<p><b>Who could use it.</b> The US has roughly 115,000–125,000 beekeepers; a hobby operation is one with 25 colonies or fewer{cite(3)}. Section 2 put the cost of the problem in numbers: <b>55.6%</b> of colonies lost in 2024–25, the worst since the survey began in 2010{cite(1)}, and about <b>$143–$185</b> to replace each one{cite(4)}.</p>
 <p><b>Where this app helps.</b> Several common ways to lose a colony are a matter of timing: syrup not given before the first hard freeze, mites not counted until too late, a queenless nuc not noticed for two visits.
 Hive notes ties each of those to the live forecast and that colony's own trend, and tells the keeper by when.</p>
 <p><b>A careful estimate, not a measurement:</b> if the app helps a 4-colony hobbyist save one colony every two winters, that's about $80 a year in bees (half of a ~$165 package{cite(4)}), against well under $1 a year in AI cost{cite(6)}.
@@ -363,7 +361,8 @@ def report() -> str:
     return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Hive notes — final report</title><style>{CSS}</style></head><body><main>
 <h1>Hive notes</h1>
-<p class="lede">A phone app for beekeepers that records each hive visit — what you saw, said and photographed, plus the weather — and has AI agents turn it into what to expect and what to do next, checked before you see it.</p>
+<p class="pitch">Snap it. Say it. Tap it. Know what to do next.</p>
+<p class="lede">Hive notes is a phone app that turns a beekeeper's hive visit (a frame photo, a voice note or a few taps) into a dated next step, timed to the weather forecast and checked by code before the keeper sees it.</p>
 <div class="links"><b>{AUTHOR}</b> · MGT 409 AI Foundations for Managers · Final project, November 2026<br>
 GitHub repo (public): <a href="{REPO}">{REPO}</a> · clone: <code>git clone {REPO}.git</code><br>
 Live app with AI: <a href="{LIVE_AI}">{LIVE_AI}</a> (access code in the Canvas comment) · Phone-only copy: <a href="{LIVE_PAGES}">{LIVE_PAGES}</a></div>
@@ -375,9 +374,9 @@ Live app with AI: <a href="{LIVE_AI}">{LIVE_AI}</a> (access code in the Canvas c
 <p>When I pointed out that note apps for beekeepers already exist, they described the real jobs: <b>record the conditions</b> of every visit (“the degrees of it matters”), <b>find the queen</b> (“you put the dot on it, but it’s still … always hard”),
 <b>read a frame like a plant-ID app reads a leaf</b>, count <b>mites and pests</b>, and above all:</p>
 <div class="quote">“tell you what to expect … the hive looks like it needs more sugar water … if the hive is too cold for them to survive … if you need to do another split, if the hive is going to swarm … help newer people or people in general figure out what the next step they should do in the hive.”</div>
-<p><b>How it's done today.</b> Keepers open the hive, then write notes on paper, in a phone notes app, or on the lid with a marker. Some keep nothing. The judgment calls, like feeding now or waiting, treating, or combining a weak colony, come from experience, a mentor, a club, or a web search. That works for experienced keepers. It fails new keepers at exactly the moments that kill colonies: feeding too late in the fall, missing a mite spike, or not noticing a queenless nuc.</p>
+<p><b>How it's done today.</b> Notes go on paper, into a phone's notes app, or nowhere, usually written after the hive is closed. The judgment calls (feed now or wait, treat for mites, combine a weak colony, expect a swarm) come from experience, a mentor, a club or a web search. That works once you have the experience. The beekeeper's ask was for the opposite case: something that helps “newer people … figure out what the next step they should do in the hive”{cite(9)}.</p>
 <p><b>What it costs.</b> Colony losses are the cost. US keepers lost an estimated 55.6% of managed colonies in 2024–25{cite(1)} and 39.9% in 2025–26{cite(2)}. Each loss costs about $143–$185 to replace with a package of bees{cite(4)}, plus the honey and the season.
-The work costs too: an inspection is done with gloves on, in a veil, with bees in the air. That's why notes get skipped, and why the beekeeper asked for an app that would “automatically record stuff.”</p>
+The work costs too. An inspection happens in gloves and a veil, with bees in the air. After using the app at the hive, the same keeper put it plainly: “that process is kind of difficult to handle the bees while taking the notes”{cite(8)}. That is why notes get skipped, and why recording the weather and conditions automatically came up in our first conversation{cite(9)}.</p>
 
 <h2>3. What is new here</h2>
 <p>I searched before building. Named products, from their own store pages and websites (claims not independently tested){cite(5)}:</p>
@@ -390,8 +389,8 @@ The work costs too: an inspection is done with gloves on, in a veil, with bees i
 <p><b>What Hive notes does differently:</b></p>
 <ul><li><b>Predictions from what the keeper sees plus the live forecast, with no hardware.</b> For example: “About 48 lb by Tuesday's freeze, this hive needs ~60, so feed 2:1 before Tuesday. Monday 9 AM–4 PM is the window.” It also tracks whether its own predictions came true.</li>
 <li><b>Talk once for the whole apiary.</b> With gloves on, the keeper says what they saw. The Scribe splits it by colony and shows the exact words behind every field.</li>
-<li><b>AI that is checked before you see it.</b> Quote-grounding, number-grounding, no doses, no dropped risks. A failed answer is retried once and otherwise replaced by the rules plan. Most AI beekeeping apps show the model's answer as-is.</li>
-<li><b>Private by default.</b> Records and photos stay on the phone, which matters because hive theft is real. The AI sees one colony's record only when the keeper taps a 🤖 button.</li></ul>
+<li><b>AI that is checked before you see it.</b> Quote-grounding, number-grounding, no doses, no dropped risks. A failed answer is retried once and otherwise replaced by the rules plan. None of the AI apps in the table says it checks its answers against the keeper's records{cite(5)}.</li>
+<li><b>Private by default.</b> Records and photos stay on the phone. The AI sees one colony's record only when the keeper taps a 🤖 button.</li></ul>
 
 <h2>4. The agents</h2>
 {DIAGRAM}
@@ -402,7 +401,7 @@ The work costs too: an inspection is done with gloves on, in a veil, with bees i
 <tr><td><b>Advisor</b></td><td>Plan for one colony (what to expect, what to do by when, when to come back) or answer a question about it.</td><td><code>get_forecast</code> (live Open-Meteo), <code>get_history</code>, <code>get_treatment_label</code></td><td>Strict JSON, then the Checker.</td></tr>
 <tr><td><b>Checker</b> (code)</td><td>Verify the Advisor: numbers grounded, no doses, allowed products only, high-risk findings kept, foulbrood → call the state apiarist.</td><td>—</td><td>Pass, or retry once, or fall back to the rules plan.</td></tr></table>
 <p><b>How they're organized.</b> It's a pipeline, not a free-for-all. The keeper's tap starts one agent, which hands its result to code checks, which hand it to the keeper. The Scribe's records feed the rules engine and the Advisor once saved. I kept the agents apart on purpose. The one reading untrusted text (the Scribe) has no say in advice, and the one giving advice (the Advisor) sees structured records, not raw notes as instructions.</p>
-<p><b>Model: gpt-6-luna.</b> It handles tools and strict JSON schemas, which every agent here depends on, and it costs $0.10 per million input tokens. With caching and short outputs, a run costs a fraction of a cent, which matters for a free app aimed at hobbyists.
+<p><b>Model: gpt-6-luna.</b> It handles tools and strict JSON schemas, which every agent here depends on, and it costs $0.10 per million input tokens{cite(11)}. With caching and short outputs, a run costs a fraction of a cent, which matters for a free app aimed at hobbyists.
 The code takes either key: <code>PORTKEY_API_KEY</code> (the course key, through Portkey) or <code>OPENAI_API_KEY</code> (straight to OpenAI), with the same model and prices. {KEY_NOTE}</p>
 <h3>One real run, step by step</h3>{section_trace()}
 
@@ -457,7 +456,7 @@ def slides() -> str:
 <div><b>{money(month, 3)}</b><span>a keeper's month<br>4 notes + 16 plans or questions</span></div></div>
 <table class="tbl"><tr><th>At scale</th><th class=n>AI / month</th><th class=n>server{cite(10)}</th><th class=n>total / month</th></tr>{scale_rows}</table>
 <p class="small"><b>How it stays cheap:</b> a free rules engine answers first, and AI runs only when you tap · {sf['cached'] / max(sf['input'], 1):.0%} of prompt tokens come from cache · only the last 3 visits are sent · photos shrink to 768 px.<br>
-<b>Tested and dropped:</b> a leaner prompt. It was no cheaper and less accurate.</p></div>
+<b>Tested and dropped:</b> a leaner prompt. It cost 55% more (it fell below the cache minimum) and was no more accurate.</p></div>
 <div>{shot('11_ai_usage', 'Every call’s tokens and cost, shown in the app', 500)}</div></div>{slide_refs(6, 10, 11)}"""
     else:
         cost = "<h2>Cost to run</h2>" + pending("real token counts")
@@ -471,15 +470,15 @@ def slides() -> str:
 <div style="text-align:center">{shot('02_yard', '', 560)}</div></div>"""
 
     problem = f"""<h2>US beekeepers lost more than half their colonies in 2024–25{cite(1)}</h2>
-<p class="lead">Many work gloved, from memory, often alone. A working beekeeper told me where it hurts{cite(9)}.</p>
+<p class="lead">Behind the numbers, a working beekeeper told me where it hurts{cite(9)}.</p>
 <div class="two" style="grid-template-columns:.85fr 2fr;margin-top:6px">
 <div class="stats col"><div><b>55.6%</b><span>of managed colonies lost, Apr 2024–Apr 2025: the worst since the survey began{cite(1)}</span></div>
 <div><b>$143–185</b><span>for a package of bees to replace one colony, plus a season of honey{cite(4)}</span></div>
 <div><b>115–125k</b><span>US beekeepers, from hobbyists (25 colonies or fewer) to commercial{cite(3)}</span></div></div>
 <div class="cards">
-<div class="card"><b>🧤 Hands full of bees, so notes get skipped.</b><p class="q">“That process is kind of difficult to handle the bees while taking the notes, especially because the bees' temperament can change at any moment.”</p></div>
-<div class="card"><b>🔍 Health is read by eye, one frame at a time.</b><p class="q">“Something that will analyze the health of the hive … like the plant thing.” And conditions count: “the degrees of it matters.”</p></div>
-<div class="card"><b>🧭 The next step takes years to learn.</b><p class="q">“Tell you what to expect … if the hive is going to swarm … help newer people figure out what the next step they should do in the hive.”</p></div>
+<div class="card"><b>🧤 Hands full of bees, so notes get skipped.</b><p class="q">“That process is kind of difficult to handle the bees while taking the notes, especially because the bees' temperament can change at any moment.”{cite(8)}</p></div>
+<div class="card"><b>🔍 Health is read by eye, one frame at a time.</b><p class="q">“Something that will analyze the health of the hive … like the plant thing.” And conditions count: “the degrees of it matters.”{cite(9)}</p></div>
+<div class="card"><b>🧭 The next step takes years to learn.</b><p class="q">“Tell you what to expect … if the hive is going to swarm … help newer people figure out what the next step they should do in the hive.”{cite(9)}</p></div>
 </div></div>
 <p class="small" style="margin-top:12px"><b>After using the app at the hive{cite(8)}, the same keeper singled out exactly these:</b> information “in real time”, knowing “whether there's honey, if there's brood”, and voice notes that make “an unsafe process … a little bit more safe.”</p>{slide_refs(1, 3, 4, 8, 9)}"""
 

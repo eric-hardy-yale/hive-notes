@@ -2,7 +2,7 @@
   "date": "23 Nov 2026",
   "source": "Camera video (5 clips) and a phone screen recording, 2:01–2:38 PM; transcribed on the laptop. No names or location kept.",
   "weather": "70°F, clear, wind 9 mph. The app said: good to open, best around 3 PM.",
-  "setting": "One working beekeeper, one 2-deep hive in a shared bee yard, live app v0.6 on an iPhone in dark mode. The keeper worked in leather gloves; Eric held the phone for part of it.",
+  "setting": "One working beekeeper, one 2-deep hive in a shared bee yard, live app v0.6 on an iPhone in dark mode. The keeper worked in leather gloves; I held the phone for part of it.",
   "what_ran": [
     "Added a new apiary on the phone (location from where they stood).",
     "Started a visit on Hive 1, photographed 2 frames from the box they opened, and had the Frame Reader read each photo.",
@@ -79,10 +79,10 @@
     "A second field test to check the fixes and the Frame Reader on more frames"
   ],
   "reread": {
-    "how": "Same evening, stills of the same two frames taken from the video (the phone's own photos stay on the phone), read once with the old prompt and with the new prompt.",
-    "frame_1": "Old and new prompt: honey, no brood. The field miss was at least partly the phone photo, not only the prompt.",
-    "frame_2": "Old prompt: capped brood + honey, spotty (low confidence). New prompt, 2 runs: no longer claims brood; says it can't tell honey from brood under the bees (low confidence), and under-reports the honey.",
+    "how": "Stills of the same two frames from the video (the phone's own photos stay on the phone), read with the old and the new prompt; $0.0003–0.0005 a read.",
+    "frame_1": "Frame 1: both prompts said honey, no brood, so the miss at the hive was partly the photo.",
+    "frame_2": "Frame 2: the old prompt said capped brood; the new one stops claiming brood but answers “can't tell” and under-counts the honey.",
     "cost": "$0.0003–0.0005 per read",
-    "takeaway": "The new prompt stops the false “brood” call but trades it for “not sure”. It needs a proper test on many labelled frame photos, not two."
+    "takeaway": "Better, not solved: it needs a test on many labelled frames."
   }
 }
